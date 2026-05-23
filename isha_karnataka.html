@@ -1367,8 +1367,8 @@ function exploreSaveLocal(cid, roles){
 const CLASS_TIERS = [
   { id: 1, key: "micro",  label: "Micro Center",       desc: "Smallest unit. Just the nurturing seed.",                           roles: ["nurturing"] },
   { id: 2, key: "sub",    label: "Sub Center",         desc: "Growing center with core outreach roles.",                          roles: ["nurturing","programs","promotions"] },
-  { id: 3, key: "full",   label: "Full Fledged Center",desc: "All nine pillars are active in the center.",                        roles: ["nurturing","relations","registration","database","programs","temple","biksha","finance","promotions"] },
-  { id: 4, key: "super",  label: "Super Center",       desc: "Full fledged + radiating influence beyond the center.",             roles: ["nurturing","relations","registration","database","programs","temple","biksha","finance","promotions"] },
+  { id: 3, key: "full",   label: "Full Fledged Center",desc: "All nine pillars are active in the center.",                        roles: ["nurturing","relations","registration","communication","programs","temple","biksha","finance","promotions"] },
+  { id: 4, key: "super",  label: "Super Center",       desc: "Full fledged + radiating influence beyond the center.",             roles: ["nurturing","relations","registration","communication","programs","temple","biksha","finance","promotions"] },
 ];
 const TIER_THEMES = {
   micro: { from:"#B8C5E0", to:"#7A8AB8", ring:"#5A6BA0" },
@@ -1417,7 +1417,7 @@ function ClassificationViz({ tier }) {
     { role:"nurturing",    label:"NURTURING",    cx:50,  cy:14, kind:"up" },
     { role:"registration", label:"REGISTRATION", cx:33,  cy:38, kind:"up" },
     { role:"relations",    label:"RELATIONS",    cx:50,  cy:32, kind:"down" },
-    { role:"database",     label:"DATABASE",     cx:67,  cy:38, kind:"up" },
+    { role:"registration", label:"DATABASE",     cx:67,  cy:38, kind:"up" },
     { role:"programs",     label:"PROGRAMS",     cx:17,  cy:62, kind:"up" },
     { role:"temple",       label:"TEMPLE",       cx:38,  cy:56, kind:"down" },
     { role:"finance",      label:"FINANCE",      cx:50,  cy:62, kind:"up" },
