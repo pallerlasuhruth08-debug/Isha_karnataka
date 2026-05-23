@@ -1453,7 +1453,7 @@ function ClassificationViz({ tier }) {
           const stroke = isActive ? COLOR_BY_TIER[firstTier] : STROKE_INACTIVE;
           return React.createElement("g", { key:"n"+i, style:{ transition:"all .35s ease" } },
             React.createElement("path", { d: triPath(n.cx, n.cy, n.kind), fill, stroke, strokeWidth:0.4, opacity: isActive ? 1 : 0.55 }),
-            React.createElement("text", { x:n.cx, y:n.cy + (n.kind==="down" ? -1 : 3), textAnchor:"middle", fontSize:3.2, fontWeight:700, fill: isActive ? TEXT_ACTIVE : TEXT_INACTIVE, style:{ pointerEvents:"none", letterSpacing:"0.04em" } }, n.label })
+            React.createElement("text", { x:n.cx, y:n.cy + (n.kind==="down" ? -1 : 3), textAnchor:"middle", fontSize:3.2, fontWeight:700, fill: isActive ? TEXT_ACTIVE : TEXT_INACTIVE, style:{ pointerEvents:"none", letterSpacing:"0.04em" } }, n.label)
           );
         })
       ),
