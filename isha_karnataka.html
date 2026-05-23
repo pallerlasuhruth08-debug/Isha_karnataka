@@ -1217,8 +1217,8 @@ function App() {
   };
 
   const tabs = isAdmin
-    ? [["dashboard","Dashboard"],["centres","Centres"],["region","Region"],["blueprint","Blueprint"],["admin","Users"],["profile","My profile"]]
-    : [["dashboard","Dashboard"],...(authUser.assignedCentre?[["mycentre","My centre"]]:[]),["blueprint","Blueprint"],["profile","My profile"]];
+    ? [["dashboard","Dashboard"],["explore","Explore"],["centres","Centres"],["region","Region"],["blueprint","Blueprint"],["admin","Users"],["profile","My profile"]]
+    : [["dashboard","Dashboard"],["explore","Explore"],...(authUser.assignedCentre?[["mycentre","My centre"]]:[]),["blueprint","Blueprint"],["profile","My profile"]];
   const activeTab = ["detail","unit","centreDash","mycentre"].includes(view)?"dashboard":view;
 
   const Topbar = () => (
@@ -1288,9 +1288,248 @@ function App() {
   else if(view==="blueprint") body=<BlueprintTree/>;
   else if(view==="admin" && isAdmin) body=<AdminUsers token={token}/>;
   else if(view==="profile") body=<MyProfile user={authUser} token={token} onUpdated={pr=>setAuthUser(u=>({...u,profile:pr,name:pr.name||u.name}))}/>;
+  else if(view==="explore") body=<ExploreWizard SECTORS={SECTORS} S={S} getCd={getCd} nav={nav}/>;
   else body=<RegionDashboard S={S} getCd={getCd} nav={nav} user={authUser}/>;
 
   return <div><Topbar/><div key={view} className="view">{body}</div></div>;
+}
+
+
+// === Branching Explorer (added) — every option opens the next set of options ===
+function ExploreWizard({SECTORS, S, getCd, nav}) {
+  const [path, setPath] = React.useState([]); // breadcrumb: [{type, id, label}, ...]
+
+  const here = path[path.length-1] || null;
+  const sector = path.find(p=>p.type==='sector');
+  const centre = path.find(p=>p.type==='centre');
+  const unit   = path.find(p=>p.type==='unit');
+  const action = path.find(p=>p.type==='action');
+
+  const sectorObj = sector ? SECTORS.find(s=>s.id===sector.id) : null;
+  const centreObj = (sectorObj && centre) ? sectorObj.centres.find(c=>c.id===centre.id) : null;
+  const centreData = centre ? getCd(centre.id) : null;
+  const unitObj = (centreData && unit) ? (centreData.units||[]).find(u=>u.id===unit.id) : null;
+
+  const push = (step) => setPath(p => [...p, step]);
+  const jumpTo = (idx) => setPath(p => p.slice(0, idx+1));
+  const reset = () => setPath([]);
+
+  const cardBase = {
+    padding:"14px 16px", borderRadius:14, cursor:"pointer",
+    background:"var(--color-background-primary)",
+    border:"1px solid var(--color-border-tertiary)",
+    boxShadow:"var(--shadow-sm)",
+    display:"flex", flexDirection:"column", gap:6,
+    transition:"transform .14s ease, box-shadow .18s ease, border-color .18s ease",
+  };
+  const onHover = (e, on) => {
+    e.currentTarget.style.transform = on ? "translateY(-2px)" : "translateY(0)";
+    e.currentTarget.style.boxShadow = on ? "var(--shadow-md)" : "var(--shadow-sm)";
+    e.currentTarget.style.borderColor = on ? "var(--accent)" : "var(--color-border-tertiary)";
+  };
+
+  const Crumb = () => (
+    <div style={{display:"flex",alignItems:"center",gap:6,flexWrap:"wrap",marginBottom:14,fontSize:13}}>
+      <span onClick={reset} style={{cursor:"pointer",color:"var(--accent)",fontWeight:600}}>Explore</span>
+      {path.map((p,i)=>(
+        <React.Fragment key={i}>
+          <span style={{color:"var(--color-text-tertiary)"}}>›</span>
+          <span onClick={()=>jumpTo(i)} style={{cursor:"pointer",color: i===path.length-1?"var(--color-text-primary)":"var(--accent)",fontWeight: i===path.length-1?600:500}}>
+            {p.label}
+          </span>
+        </React.Fragment>
+      ))}
+    </div>
+  );
+
+  const Header = ({title, sub}) => (
+    <div style={{marginBottom:14}}>
+      <div className="display" style={{fontSize:22,fontWeight:700,letterSpacing:"-.01em"}}>{title}</div>
+      {sub && <div style={{fontSize:13,color:"var(--color-text-secondary)",marginTop:3}}>{sub}</div>}
+    </div>
+  );
+
+  const Grid = ({children}) => (
+    <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill, minmax(220px, 1fr))",gap:12}}>{children}</div>
+  );
+
+  // STEP 1: pick sector
+  if(!sector){
+    return (
+      <div className="view">
+        <Crumb/>
+        <Header title="Choose a Sector" sub="Every option opens the next set of options. Pick a sector to begin."/>
+        <Grid>
+          {SECTORS.map(s=>{
+            const n = (s.centres||[]).length;
+            return (
+              <div key={s.id} style={cardBase}
+                onMouseEnter={e=>onHover(e,true)} onMouseLeave={e=>onHover(e,false)}
+                onClick={()=>push({type:'sector', id:s.id, label:s.name})}>
+                <div style={{fontWeight:600,fontSize:15}}>{s.name}</div>
+                <div style={{fontSize:12,color:"var(--color-text-secondary)"}}>{n} centre{n===1?'':'s'} · click to branch →</div>
+              </div>
+            );
+          })}
+        </Grid>
+      </div>
+    );
+  }
+
+  // STEP 2: pick centre within sector
+  if(sector && !centre){
+    const cs = sectorObj.centres||[];
+    return (
+      <div className="view">
+        <Crumb/>
+        <Header title={sectorObj.name + " · Centres"} sub={"Pick a centre to see what you can do with it."}/>
+        <Grid>
+          {cs.map(c=>{
+            const d = getCd(c.id) || {};
+            const stage = d.stage||0;
+            const units = (d.units||[]).length;
+            return (
+              <div key={c.id} style={cardBase}
+                onMouseEnter={e=>onHover(e,true)} onMouseLeave={e=>onHover(e,false)}
+                onClick={()=>push({type:'centre', id:c.id, label:c.name})}>
+                <div style={{fontWeight:600,fontSize:15}}>{c.name}</div>
+                <div style={{fontSize:12,color:"var(--color-text-secondary)"}}>
+                  Stage {stage} · {units} unit{units===1?'':'s'}
+                  {c.med ? " · med " + c.med : ""}
+                </div>
+                <div style={{fontSize:11,color:"var(--accent)",marginTop:2}}>click to branch →</div>
+              </div>
+            );
+          })}
+        </Grid>
+      </div>
+    );
+  }
+
+  // STEP 3: pick action for the centre
+  if(centre && !action){
+    const d = centreData || {};
+    const units = d.units||[];
+    const actions = [
+      {id:'dash', label:'Open Centre Dashboard', desc:'KPIs, stage, snapshot', leaf:true, go:()=>nav('centreDash', centre.id)},
+      {id:'detail', label:'Open Team Detail', desc:'Roster, edit team', leaf:true, go:()=>nav('detail', centre.id)},
+      {id:'units', label:'Browse Units / Teams ('+units.length+')', desc:'Drill into each unit', leaf:false},
+      {id:'report', label:'Open Locality Cluster Report', desc: centreObj.url ? 'External report' : 'Not available for this centre', leaf:true, disabled: !centreObj.url, go: ()=>{ if(centreObj.url) window.open(centreObj.url,'_blank'); }},
+      {id:'stats', label:'Quick Stats', desc:'Stage, counts, med', leaf:false},
+    ];
+    return (
+      <div className="view">
+        <Crumb/>
+        <Header title={centreObj.name + " · What next?"} sub="Each option branches into more options or opens the relevant screen."/>
+        <Grid>
+          {actions.map(a=>(
+            <div key={a.id}
+              style={{...cardBase, opacity:a.disabled?0.45:1, cursor:a.disabled?'not-allowed':'pointer'}}
+              onMouseEnter={e=>!a.disabled && onHover(e,true)} onMouseLeave={e=>!a.disabled && onHover(e,false)}
+              onClick={()=>{
+                if(a.disabled) return;
+                if(a.leaf){ a.go && a.go(); }
+                else { push({type:'action', id:a.id, label:a.label}); }
+              }}>
+              <div style={{fontWeight:600,fontSize:14.5}}>{a.label}</div>
+              <div style={{fontSize:12,color:"var(--color-text-secondary)"}}>{a.desc}</div>
+              <div style={{fontSize:11,color:"var(--accent)",marginTop:2}}>{a.leaf?'opens screen ↗':'click to branch →'}</div>
+            </div>
+          ))}
+        </Grid>
+      </div>
+    );
+  }
+
+  // STEP 4: action sub-branches
+  if(action && action.id==='units' && !unit){
+    const units = (centreData && centreData.units) || [];
+    if(units.length===0){
+      return (
+        <div className="view">
+          <Crumb/>
+          <Header title="No units yet" sub="This centre doesn't have any units / teams configured."/>
+          <button onClick={()=>jumpTo(path.length-2)} style={{padding:"8px 12px",borderRadius:10,border:"1px solid var(--color-border-secondary)",background:"var(--color-background-primary)",cursor:"pointer"}}>← Back</button>
+        </div>
+      );
+    }
+    return (
+      <div className="view">
+        <Crumb/>
+        <Header title={centreObj.name + " · Units"} sub="Pick a unit to branch into its actions."/>
+        <Grid>
+          {units.map(u=>{
+            const mem = (u.members||u.roster||[]).length;
+            return (
+              <div key={u.id} style={cardBase}
+                onMouseEnter={e=>onHover(e,true)} onMouseLeave={e=>onHover(e,false)}
+                onClick={()=>push({type:'unit', id:u.id, label:u.name||'Unit'})}>
+                <div style={{fontWeight:600,fontSize:14.5}}>{u.name||'Unit'}</div>
+                <div style={{fontSize:12,color:"var(--color-text-secondary)"}}>{mem} member{mem===1?'':'s'}</div>
+                <div style={{fontSize:11,color:"var(--accent)",marginTop:2}}>click to branch →</div>
+              </div>
+            );
+          })}
+        </Grid>
+      </div>
+    );
+  }
+
+  // STEP 5: unit sub-actions
+  if(unit){
+    const u = unitObj || {};
+    const subs = [
+      {id:'openUnit', label:'Open Unit Screen', desc:'Full editor for this unit', go:()=>nav('unit', centre.id, u.id)},
+      {id:'roster',   label:'View Roster ('+((u.members||u.roster||[]).length)+')', desc:'See members', go:()=>nav('unit', centre.id, u.id)},
+      {id:'parent',   label:'Back to Centre Actions', desc:'Up one level', go:()=>jumpTo(path.findIndex(p=>p.type==='centre'))},
+    ];
+    return (
+      <div className="view">
+        <Crumb/>
+        <Header title={(u.name||'Unit') + ' · Actions'} sub="Each branches further or opens the unit."/>
+        <Grid>
+          {subs.map(a=>(
+            <div key={a.id} style={cardBase}
+              onMouseEnter={e=>onHover(e,true)} onMouseLeave={e=>onHover(e,false)}
+              onClick={a.go}>
+              <div style={{fontWeight:600,fontSize:14.5}}>{a.label}</div>
+              <div style={{fontSize:12,color:"var(--color-text-secondary)"}}>{a.desc}</div>
+            </div>
+          ))}
+        </Grid>
+      </div>
+    );
+  }
+
+  // STEP 5b: stats sub-branches
+  if(action && action.id==='stats'){
+    const d = centreData || {};
+    const units = d.units||[];
+    const members = units.reduce((s,u)=>s+((u.members||u.roster||[]).length),0);
+    const items = [
+      {k:'Stage', v:String(d.stage||0)},
+      {k:'Units', v:String(units.length)},
+      {k:'Members (rough)', v:String(members)},
+      {k:'Median ref', v: centreObj.med ? String(centreObj.med) : '—'},
+      {k:'Locality URL', v: centreObj.url ? 'available' : '—'},
+    ];
+    return (
+      <div className="view">
+        <Crumb/>
+        <Header title={centreObj.name + ' · Quick Stats'} sub="Snapshot derived from current data."/>
+        <Grid>
+          {items.map(it=>(
+            <div key={it.k} style={{...cardBase, cursor:'default'}}>
+              <div style={{fontSize:12,color:"var(--color-text-secondary)"}}>{it.k}</div>
+              <div style={{fontSize:20,fontWeight:700}} className="display">{it.v}</div>
+            </div>
+          ))}
+        </Grid>
+      </div>
+    );
+  }
+
+  return <div>Unknown step.</div>;
 }
 
 // admin centres editor grid (full edit)
