@@ -1297,28 +1297,28 @@ function App() {
 
 // === Branching Explorer (v3: 9-role centre editor with persistence) ===
 const CENTRE_ROLES = [
-  {id:"nurturing",   label:"NURTURING",          desc:"Creating support system and enabling an atmosphere of growth for all meditators",                                                        theme:{from:"#FF6B9D", to:"#FEC163", ring:"#FF6B9D", emoji:"\u{1F33B}"}},
-  {id:"programs",    label:"PROGRAMS",           desc:"Organising all Isha programs, identifying + training program organisers",                                                                  theme:{from:"#667EEA", to:"#764BA2", ring:"#5A4FCF", emoji:"\u{1F4DA}"}},
-  {id:"temple",      label:"TEMPLE",             desc:"Enabling temple offering in Centres (Devi, Shivanga, Naga, etc), taking care of Sannidhi spaces",                                          theme:{from:"#F6D365", to:"#FDA085", ring:"#F76B1C", emoji:"\u{1F54C}"}},
-  {id:"biksha",      label:"BIKSHA",             desc:"Sharing offerings as Biksha; supporting the giving practice in the centre",                                                                theme:{from:"#84FAB0", to:"#8FD3F4", ring:"#43C6AC", emoji:"\u{1F35B}"}},
-  {id:"registration",label:"REGISTRATION & DB",  desc:"System to enable participant registration and support for programs and events",                                                            theme:{from:"#4FACFE", to:"#00F2FE", ring:"#0072FF", emoji:"\u{1F4DD}"}},
-  {id:"relations",   label:"RELATIONS",          desc:"Nurturing and supporting people with influence across Government, Education, Corporate, etc.",                                             theme:{from:"#A18CD1", to:"#FBC2EB", ring:"#9D50BB", emoji:"\u{1F91D}"}},
-  {id:"finance",     label:"FINANCE",            desc:"Planning finances, managing accounts",                                                                                                     theme:{from:"#43E97B", to:"#38F9D7", ring:"#11998E", emoji:"\u{1F4B0}"}},
-  {id:"promotions",  label:"PROMOTIONS",         desc:"Raising funds for various initiatives through sponsors, donors, CSR",                                                                     theme:{from:"#FA709A", to:"#FEE140", ring:"#F857A6", emoji:"\u{1F4E2}"}},
-  {id:"communication",label:"COMMUNICATION",     desc:"Enabling communication and mechanisms to reach out Sadhguru's offerings to all, both on ground and online",                               theme:{from:"#FF9A8B", to:"#FF6A88", ring:"#FF6A88", emoji:"\u{1F4E1}"}},
+  {id:"nurturing",   label:"NURTURING",          desc:"Creating support system and enabling an atmosphere of growth for all meditators",                                                        theme:{from:"#FF6B9D", to:"#FEC163", ring:"#FF6B9D", emoji:"🌻"}},
+  {id:"programs",    label:"PROGRAMS",           desc:"Organising all Isha programs, identifying + training program organisers",                                                                  theme:{from:"#667EEA", to:"#764BA2", ring:"#5A4FCF", emoji:"📚"}},
+  {id:"temple",      label:"TEMPLE",             desc:"Enabling temple offering in Centres (Devi, Shivanga, Naga, etc), taking care of Sannidhi spaces",                                          theme:{from:"#F6D365", to:"#FDA085", ring:"#F76B1C", emoji:"🕌"}},
+  {id:"biksha",      label:"BIKSHA",             desc:"Sharing offerings as Biksha; supporting the giving practice in the centre",                                                                theme:{from:"#84FAB0", to:"#8FD3F4", ring:"#43C6AC", emoji:"🍛"}},
+  {id:"registration",label:"REGISTRATION & DB",  desc:"System to enable participant registration and support for programs and events",                                                            theme:{from:"#4FACFE", to:"#00F2FE", ring:"#0072FF", emoji:"📝"}},
+  {id:"relations",   label:"RELATIONS",          desc:"Nurturing and supporting people with influence across Government, Education, Corporate, etc.",                                             theme:{from:"#A18CD1", to:"#FBC2EB", ring:"#9D50BB", emoji:"🤝"}},
+  {id:"finance",     label:"FINANCE",            desc:"Planning finances, managing accounts",                                                                                                     theme:{from:"#43E97B", to:"#38F9D7", ring:"#11998E", emoji:"💰"}},
+  {id:"promotions",  label:"PROMOTIONS",         desc:"Raising funds for various initiatives through sponsors, donors, CSR",                                                                     theme:{from:"#FA709A", to:"#FEE140", ring:"#F857A6", emoji:"📢"}},
+  {id:"communication",label:"COMMUNICATION",     desc:"Enabling communication and mechanisms to reach out Sadhguru's offerings to all, both on ground and online",                               theme:{from:"#FF9A8B", to:"#FF6A88", ring:"#FF6A88", emoji:"📡"}},
 ];
 
 const EXPLORE_SECTOR_THEMES = {
-  BLR1:        {emoji:"\u{1F305}", from:"#FF8A65", to:"#FFB74D", ring:"#FF7043"},
-  BLR2:        {emoji:"\u{1F306}", from:"#7E57C2", to:"#9575CD", ring:"#673AB7"},
-  BLR3:        {emoji:"\u{1F33F}", from:"#26A69A", to:"#66BB6A", ring:"#00897B"},
-  BLR4:        {emoji:"\u{1F33A}", from:"#EC407A", to:"#F06292", ring:"#D81B60"},
-  BLR5:        {emoji:"\u26F0\uFE0F", from:"#42A5F5", to:"#64B5F6", ring:"#1E88E5"},
-  CHIKKABALLAPUR:{emoji:"\u{1F33E}", from:"#FFB300", to:"#FFD54F", ring:"#FB8C00"},
-  MYSURU:      {emoji:"\u{1F3DB}\uFE0F", from:"#AB47BC", to:"#CE93D8", ring:"#8E24AA"},
+  BLR1:        {emoji:"🌅", from:"#FF8A65", to:"#FFB74D", ring:"#FF7043"},
+  BLR2:        {emoji:"🌆", from:"#7E57C2", to:"#9575CD", ring:"#673AB7"},
+  BLR3:        {emoji:"🌿", from:"#26A69A", to:"#66BB6A", ring:"#00897B"},
+  BLR4:        {emoji:"🌺", from:"#EC407A", to:"#F06292", ring:"#D81B60"},
+  BLR5:        {emoji:"⛰️", from:"#42A5F5", to:"#64B5F6", ring:"#1E88E5"},
+  CHIKKABALLAPUR:{emoji:"🌾", from:"#FFB300", to:"#FFD54F", ring:"#FB8C00"},
+  MYSURU:      {emoji:"🏛️", from:"#AB47BC", to:"#CE93D8", ring:"#8E24AA"},
 };
 function exploreTheme(id){
-  return EXPLORE_SECTOR_THEMES[id] || {emoji:"\u2728", from:"#5C6BC0", to:"#7986CB", ring:"#3949AB"};
+  return EXPLORE_SECTOR_THEMES[id] || {emoji:"✨", from:"#5C6BC0", to:"#7986CB", ring:"#3949AB"};
 }
 
 // Local fallback persistence (used if backend updCd not available)
@@ -1392,10 +1392,10 @@ function ExploreWizard({SECTORS, S, getCd, updCd, nav}) {
       fontSize:17, padding:"10px 14px", borderRadius:14,
       background:"linear-gradient(135deg, rgba(83,74,183,.08), rgba(255,193,7,.10))",
       border:"1px solid rgba(83,74,183,.18)"}}>
-      <span onClick={reset} style={{cursor:"pointer",color:"var(--accent)",fontWeight:700,fontSize:18}}>\u{1F9ED} Explore</span>
+      <span onClick={reset} style={{cursor:"pointer",color:"var(--accent)",fontWeight:700,fontSize:18}}>🧭 Explore</span>
       {path.map((p,i)=>(
         <React.Fragment key={i}>
-          <span style={{color:"#bbb",fontSize:18}}>\u203A</span>
+          <span style={{color:"#bbb",fontSize:18}}>›</span>
           <span onClick={()=>jumpTo(i)} style={{
             cursor:"pointer",
             color: i===path.length-1?"var(--color-text-primary)":"var(--accent)",
@@ -1408,7 +1408,7 @@ function ExploreWizard({SECTORS, S, getCd, updCd, nav}) {
       ))}
       {editingRole && (
         <React.Fragment>
-          <span style={{color:"#bbb",fontSize:18}}>\u203A</span>
+          <span style={{color:"#bbb",fontSize:18}}>›</span>
           <span style={{color:"var(--color-text-primary)",fontWeight:700,fontSize:18,padding:"3px 9px",borderRadius:10,background:"rgba(83,74,183,.10)"}}>
             {(CENTRE_ROLES.find(r=>r.id===editingRole)||{}).label || editingRole}
           </span>
@@ -1493,7 +1493,7 @@ function ExploreWizard({SECTORS, S, getCd, updCd, nav}) {
             <div style={{fontSize:54, lineHeight:1}}>{th.emoji}</div>
             <div>
               <div className="display" style={{fontSize:30, fontWeight:800, letterSpacing:"-.01em"}}>{role.label}</div>
-              <div style={{fontSize:14, opacity:.92, marginTop:2}}>{centreObj.name} \u00B7 {sectorObj.name}</div>
+              <div style={{fontSize:14, opacity:.92, marginTop:2}}>{centreObj.name} · {sectorObj.name}</div>
             </div>
           </div>
           <div style={{position:"relative", marginTop:14, fontSize:15.5, opacity:.96, lineHeight:1.5, maxWidth:760}}>{role.desc}</div>
@@ -1505,7 +1505,7 @@ function ExploreWizard({SECTORS, S, getCd, updCd, nav}) {
           borderRadius:20, padding:"22px 22px 20px",
           boxShadow:"var(--shadow-md)", maxWidth:760
         }}>
-          <div className="display" style={{fontSize:20, fontWeight:700, marginBottom:14}}>\u{1F4DD} Assignment</div>
+          <div className="display" style={{fontSize:20, fontWeight:700, marginBottom:14}}>📝 Assignment</div>
           <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:14}}>
             <div>
               <div style={labelStyle}>Name</div>
@@ -1531,7 +1531,7 @@ function ExploreWizard({SECTORS, S, getCd, updCd, nav}) {
               background:"linear-gradient(135deg,"+th.from+","+th.to+")", color:"#fff",
               fontWeight:700, fontSize:15, letterSpacing:".01em",
               boxShadow:"0 8px 22px -8px "+th.ring+"99"
-            }}>\u{1F4BE} Save</button>
+            }}>💾 Save</button>
             <button onClick={()=>setEditingRole(null)} style={{
               padding:"12px 18px", borderRadius:14, cursor:"pointer", fontSize:15,
               background:"var(--color-background-secondary)", color:"var(--color-text-primary)",
@@ -1544,7 +1544,7 @@ function ExploreWizard({SECTORS, S, getCd, updCd, nav}) {
                 border:"1px solid #f1c5be", fontWeight:600
               }}>Clear assignment</button>
             )}
-            {savedAt && <span style={{color:"#1e8449", fontWeight:600, fontSize:14}}>\u2705 Saved</span>}
+            {savedAt && <span style={{color:"#1e8449", fontWeight:600, fontSize:14}}>✅ Saved</span>}
           </div>
         </div>
       </div>
@@ -1556,7 +1556,7 @@ function ExploreWizard({SECTORS, S, getCd, updCd, nav}) {
     return (
       <div className="view">
         <Crumb/>
-        <Header big title="\u{1F30D} Choose a Sector" sub="Every option opens the next set of options. Tap a sector to begin your journey."/>
+        <Header big title="🌍 Choose a Sector" sub="Every option opens the next set of options. Tap a sector to begin your journey."/>
         <Grid>
           {SECTORS.map((s)=>{
             const th = exploreTheme(s.id);
@@ -1564,8 +1564,8 @@ function ExploreWizard({SECTORS, S, getCd, updCd, nav}) {
             return (
               <ColorCard big key={s.id} id={"sector-"+s.id} theme={th}
                 title={s.name}
-                sub={n+" centre"+(n===1?"":"s")+" \u00B7 explore the network"}
-                hint={"Branch into centres \u2192"}
+                sub={n+" centre"+(n===1?"":"s")+" · explore the network"}
+                hint={"Branch into centres →"}
                 onClick={()=>push({type:'sector', id:s.id, label:s.name})}/>
             );
           })}
@@ -1579,14 +1579,14 @@ function ExploreWizard({SECTORS, S, getCd, updCd, nav}) {
     const cs = sectorObj.centres||[];
     const th = exploreTheme(sector.id);
     const palette = [
-      {from:"#FF6B9D", to:"#FEC163", ring:"#FF6B9D", emoji:"\u{1F4CD}"},
-      {from:"#43E97B", to:"#38F9D7", ring:"#11998E", emoji:"\u{1F3DD}\uFE0F"},
-      {from:"#4FACFE", to:"#00F2FE", ring:"#0072FF", emoji:"\u{1F3D9}\uFE0F"},
-      {from:"#FA709A", to:"#FEE140", ring:"#F857A6", emoji:"\u{1F3EF}"},
-      {from:"#A18CD1", to:"#FBC2EB", ring:"#9D50BB", emoji:"\u{1F30C}"},
-      {from:"#84FAB0", to:"#8FD3F4", ring:"#43C6AC", emoji:"\u{1F341}"},
-      {from:"#F6D365", to:"#FDA085", ring:"#F76B1C", emoji:"\u{1F31E}"},
-      {from:"#5EE7DF", to:"#B490CA", ring:"#5EE7DF", emoji:"\u{1F4AB}"},
+      {from:"#FF6B9D", to:"#FEC163", ring:"#FF6B9D", emoji:"📍"},
+      {from:"#43E97B", to:"#38F9D7", ring:"#11998E", emoji:"🏝️"},
+      {from:"#4FACFE", to:"#00F2FE", ring:"#0072FF", emoji:"🏙️"},
+      {from:"#FA709A", to:"#FEE140", ring:"#F857A6", emoji:"🏯"},
+      {from:"#A18CD1", to:"#FBC2EB", ring:"#9D50BB", emoji:"🌌"},
+      {from:"#84FAB0", to:"#8FD3F4", ring:"#43C6AC", emoji:"🍁"},
+      {from:"#F6D365", to:"#FDA085", ring:"#F76B1C", emoji:"🌞"},
+      {from:"#5EE7DF", to:"#B490CA", ring:"#5EE7DF", emoji:"💫"},
     ];
     return (
       <div className="view">
@@ -1600,8 +1600,8 @@ function ExploreWizard({SECTORS, S, getCd, updCd, nav}) {
             return (
               <ColorCard key={c.id} id={"centre-"+c.id} theme={p}
                 title={c.name}
-                sub={(c.med?"Median ref "+c.med+" \u00B7 ":"")+rolesFilled+" / 9 roles filled"}
-                hint={"Open 9 roles \u2192"}
+                sub={(c.med?"Median ref "+c.med+" · ":"")+rolesFilled+" / 9 roles filled"}
+                hint={"Open 9 roles →"}
                 onClick={()=>push({type:'centre', id:c.id, label:c.name})}/>
             );
           })}
@@ -1615,7 +1615,7 @@ function ExploreWizard({SECTORS, S, getCd, updCd, nav}) {
     return (
       <div className="view">
         <Crumb/>
-        <Header big title={"\u{1F3AF} "+centreObj.name+" \u00B7 9 Roles"} sub="Tap a role to enter or update the person assigned. Saves automatically per centre."/>
+        <Header big title={"🎯 "+centreObj.name+" · 9 Roles"} sub="Tap a role to enter or update the person assigned. Saves automatically per centre."/>
         <Grid min={300}>
           {CENTRE_ROLES.map(r=>{
             const cur = liveRoles[r.id];
@@ -1623,14 +1623,14 @@ function ExploreWizard({SECTORS, S, getCd, updCd, nav}) {
             return (
               <ColorCard key={r.id} id={"role-"+r.id} theme={r.theme}
                 title={r.label} sub={r.desc}
-                hint={filled ? "Edit \u270F\uFE0F" : "Assign \u2192"}
-                footer={filled ? ("\u{1F464} "+(cur.name||"(no name)")+(cur.phone?(" \u00B7 "+cur.phone):"")) : "Unassigned"}
+                hint={filled ? "Edit ✏️" : "Assign →"}
+                footer={filled ? ("👤 "+(cur.name||"(no name)")+(cur.phone?(" · "+cur.phone):"")) : "Unassigned"}
                 onClick={()=>openEditor(r.id)}/>
             );
           })}
         </Grid>
         <div style={{marginTop:18, fontSize:13, color:"var(--color-text-secondary)"}}>
-          \u{1F4BE} Data is stored on the backend per centre when configured, and also kept locally on this device as a safety net.
+          💾 Data is stored on the backend per centre when configured, and also kept locally on this device as a safety net.
         </div>
       </div>
     );
