@@ -1363,13 +1363,113 @@ function exploreSaveLocal(cid, roles){
   try { localStorage.setItem(exploreLocalKey(cid), JSON.stringify(roles||{})); } catch(e){}
 }
 
+// === Centre Classification Tiers ===
+const CLASS_TIERS = [
+  { id: 1, key: "micro",  label: "Micro Center",       desc: "Smallest unit. Just the nurturing seed.",                           roles: ["nurturing"] },
+  { id: 2, key: "sub",    label: "Sub Center",         desc: "Growing center with core outreach roles.",                          roles: ["nurturing","programs","promotions"] },
+  { id: 3, key: "full",   label: "Full Fledged Center",desc: "All nine pillars are active in the center.",                        roles: ["nurturing","relations","registration","database","programs","temple","biksha","finance","promotions"] },
+  { id: 4, key: "super",  label: "Super Center",       desc: "Full fledged + radiating influence beyond the center.",             roles: ["nurturing","relations","registration","database","programs","temple","biksha","finance","promotions"] },
+];
+const TIER_THEMES = {
+  micro: { from:"#B8C5E0", to:"#7A8AB8", ring:"#5A6BA0" },
+  sub:   { from:"#8BA3C7", to:"#4F6C9B", ring:"#3A5478" },
+  full:  { from:"#A8C9D6", to:"#6B95A8", ring:"#4E7A8E" },
+  super: { from:"#C9B8E0", to:"#8B6BB8", ring:"#6B4A98" },
+};
+
+// Pyramid of triangles. Layers (top → bottom):
+// L1 (1): top → "nurturing"
+// L2 (2): "relations"-related and "database"-related slots; in our reference image row 2 is "registration","database"
+// We follow the reference image precisely:
+// Row1: NURTURING
+// Row2: REGISTRATION, RELATIONS(center filler), DATABASE
+// Row3: PROGRAMS, TEMPLE, BIKSHA, PROMOTIONS  → with FINANCE in the center of row 3 (between TEMPLE & BIKSHA)
+// We render as a 4-row triangular grid using SVG.
+function ClassificationViz({ tier }) {
+  const activeKey = tier ? tier.key : null;
+  const activeRoles = tier ? new Set(tier.roles) : new Set();
+
+  // Role labels and which tier first unlocks them
+  const ROLE_FIRST_TIER = {
+    nurturing: 1, programs: 2, promotions: 2,
+    relations: 3, registration: 3, database: 3, temple: 3, biksha: 3, finance: 3,
+  };
+  const COLOR_BY_TIER = { 1:"#5A6BA0", 2:"#3A5478", 3:"#4E7A8E", 4:"#6B4A98" };
+  const FILL_ACTIVE = { 1:"#7A8AB8", 2:"#4F6C9B", 3:"#6B95A8", 4:"#8B6BB8" };
+  const FILL_INACTIVE = "#E5E2D8";
+  const STROKE_INACTIVE = "#CFCBBE";
+  const TEXT_ACTIVE = "#ffffff";
+  const TEXT_INACTIVE = "#9A9684";
+
+  // 4-row pyramid coordinates (triangular layout)
+  // We use unit triangles of side s; row r has 2r-1 small triangles.
+  // Map (row, col) → role id (or null filler)
+  // Reference image FULL FLEDGED CENTER layout:
+  //  Row 1 (top, 1 up-triangle): NURTURING
+  //  Row 2 (3 triangles: up,down,up): RELATIONS(top of row at the center), REGISTRATION (left up), DATABASE (right up)
+  // After review of the image, the pyramid is actually:
+  //   Layer A (top tri): NURTURING
+  //   Layer B has 4 small triangles forming row 2: left-up "REGISTRATION", center-down (filler -> "RELATIONS"), right-up "DATABASE"
+  //   Layer C has 5 small triangles row 3: PROGRAMS(left up), filler-down, TEMPLE(up), filler-down, BIKSHA(up)...
+  // For simplicity & fidelity, we render a hand-laid layout matching the image:
+  const NODES = [
+    // {row, kind: 'up'|'down', cx, cy, role, label}
+    { role:"nurturing",    label:"NURTURING",    cx:50,  cy:14, kind:"up" },
+    { role:"registration", label:"REGISTRATION", cx:33,  cy:38, kind:"up" },
+    { role:"relations",    label:"RELATIONS",    cx:50,  cy:32, kind:"down" },
+    { role:"database",     label:"DATABASE",     cx:67,  cy:38, kind:"up" },
+    { role:"programs",     label:"PROGRAMS",     cx:17,  cy:62, kind:"up" },
+    { role:"temple",       label:"TEMPLE",       cx:38,  cy:56, kind:"down" },
+    { role:"finance",      label:"FINANCE",      cx:50,  cy:62, kind:"up" },
+    { role:"biksha",       label:"BIKSHA",       cx:62,  cy:56, kind:"down" },
+    { role:"promotions",   label:"PROMOTIONS",   cx:83,  cy:62, kind:"up" },
+  ];
+
+  const W = 360, H = 280;
+  const triSize = 56; // edge length in px
+
+  function triPath(cx, cy, kind) {
+    const s = triSize;
+    const h = s * Math.sqrt(3) / 2;
+    if (kind === "up") {
+      return `M ${cx} ${cy - h*2/3} L ${cx - s/2} ${cy + h/3} L ${cx + s/2} ${cy + h/3} Z`;
+    }
+    return `M ${cx} ${cy + h*2/3} L ${cx - s/2} ${cy - h/3} L ${cx + s/2} ${cy - h/3} Z`;
+  }
+
+  return (
+    React.createElement("div", { style: { display:"flex", flexDirection:"column", alignItems:"center", padding:"18px 12px", background:"linear-gradient(180deg,#FBF8F0,#F4EFE2)", borderRadius:16, border:"1px solid #E0DACB" } },
+      React.createElement("svg", { viewBox: "0 0 100 80", width: W, height: H, style:{ overflow:"visible" } },
+        // optional radiating dotted lines for super center
+        activeKey === "super" && [
+          [50,12,30,-15],[50,12,70,-15],[50,12,20,0],[50,12,80,0],
+          [16,62,-5,55],[16,62,-2,75],[84,62,105,55],[84,62,102,75],
+          [50,62,30,90],[50,62,70,90],[50,62,50,95]
+        ].map((c,i)=> React.createElement("line", { key:"r"+i, x1:c[0], y1:c[1], x2:c[2], y2:c[3], stroke:"#534AB7", strokeWidth:0.5, strokeDasharray:"1,1", opacity:0.7 })),
+        NODES.map((n,i) => {
+          const isActive = activeRoles.has(n.role);
+          const firstTier = ROLE_FIRST_TIER[n.role] || 3;
+          const fill = isActive ? FILL_ACTIVE[firstTier] : FILL_INACTIVE;
+          const stroke = isActive ? COLOR_BY_TIER[firstTier] : STROKE_INACTIVE;
+          return React.createElement("g", { key:"n"+i, style:{ transition:"all .35s ease" } },
+            React.createElement("path", { d: triPath(n.cx, n.cy, n.kind), fill, stroke, strokeWidth:0.4, opacity: isActive ? 1 : 0.55 }),
+            React.createElement("text", { x:n.cx, y:n.cy + (n.kind==="down" ? -1 : 3), textAnchor:"middle", fontSize:3.2, fontWeight:700, fill: isActive ? TEXT_ACTIVE : TEXT_INACTIVE, style:{ pointerEvents:"none", letterSpacing:"0.04em" } }, n.label })
+          );
+        })
+      ),
+      React.createElement("div", { style:{ marginTop:10, fontSize:13, fontWeight:600, color:"#3a382f", textTransform:"uppercase", letterSpacing:"0.08em" } }, tier ? tier.label : "Pick a classification")
+    )
+  );
+}
+
 function ExploreWizard({SECTORS, S, getCd, updCd, nav}) {
   const [path, setPath] = React.useState([]);
   const [hoverId, setHoverId] = React.useState(null);
   const [editingRole, setEditingRole] = React.useState(null);
   const [draft, setDraft] = React.useState({name:"",phone:"",email:"",notes:""});
   const [savedAt, setSavedAt] = React.useState(null);
-
+  const [classTier, setClassTier] = React.useState(null);
+  
   const sector = path.find(p=>p.type==='sector');
   const centre = path.find(p=>p.type==='centre');
   const sectorObj = sector ? SECTORS.find(s=>s.id===sector.id) : null;
@@ -1649,8 +1749,40 @@ function ExploreWizard({SECTORS, S, getCd, updCd, nav}) {
       <div className="view">
         <Crumb/>
         <Header big title={"🎯 "+centreObj.name+" · 9 Roles"} sub="Tap a role to enter or update the person assigned. Saves automatically per centre."/>
+
+        {/* Classification picker */}
+        <div style={{margin:"18px 0 14px", padding:"18px 18px 16px", background:"linear-gradient(135deg,#FBF8F0,#F4EFE2)", border:"1px solid #E0DACB", borderRadius:18}}>
+          <div style={{fontSize:14, fontWeight:700, color:"#23211c", letterSpacing:"0.02em", marginBottom:4}}>Classify this Center</div>
+          <div style={{fontSize:12.5, color:"#6a6760", marginBottom:14}}>Pick the classification that best describes this center. The roles displayed below — and the triangle map on the right — adapt to your choice.</div>
+          <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:18, alignItems:"start"}}>
+            <div style={{display:"grid", gridTemplateColumns:"1fr 1fr", gap:10}}>
+              {CLASS_TIERS.map(tier => {
+                const active = classTier && classTier.key === tier.key;
+                const th = TIER_THEMES[tier.key];
+                return (
+                  <button key={tier.key} onClick={()=>setClassTier(tier)}
+                    style={{
+                      textAlign:"left", cursor:"pointer", border:"none", borderRadius:14, padding:"14px 14px 13px",
+                      background: active ? "linear-gradient(135deg,"+th.from+","+th.to+")" : "#fff",
+                      color: active ? "#fff" : "#23211c",
+                      boxShadow: active ? "0 10px 26px -10px "+th.ring+"99" : "0 1px 3px rgba(40,36,25,0.08)",
+                      transform: active ? "translateY(-1px)" : "none",
+                      transition:"all .25s ease",
+                      outline: active ? "2px solid "+th.ring : "1px solid #E0DACB"
+                    }}>
+                    <div style={{fontSize:13.5, fontWeight:700, letterSpacing:"0.05em", textTransform:"uppercase"}}>{tier.label}</div>
+                    <div style={{fontSize:11.5, marginTop:4, opacity: active ? 0.95 : 0.7, lineHeight:1.45}}>{tier.desc}</div>
+                    <div style={{fontSize:10.5, marginTop:8, opacity: active ? 0.9 : 0.6}}>{tier.roles.length} role{tier.roles.length>1?"s":""} active</div>
+                  </button>
+                );
+              })}
+            </div>
+            <ClassificationViz tier={classTier}/>
+          </div>
+        </div>
+
         <Grid min={300}>
-          {CENTRE_ROLES.map(r=>{
+          {(classTier ? CENTRE_ROLES.filter(r=>classTier.roles.includes(r.id)) : CENTRE_ROLES).map(r=>{
             const cur = liveRoles[r.id];
             const filled = !!(cur && (cur.name||cur.phone||cur.email||cur.notes));
             return (
