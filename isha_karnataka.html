@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Isha Karnataka — Team Builder</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;450;500;600;700&display=swap" rel="stylesheet">
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<style>
+  :root{
+    --color-text-primary:#23211c;
+    --color-text-secondary:#6a6760;
+    --color-text-tertiary:#a4a194;
+    --color-background-primary:#ffffff;
+    --color-background-secondary:#f4f1e9;
+    --color-border-secondary:#d8d3c5;
+    --color-border-tertiary:#ebe7dc;
+    --accent:#534AB7;
+    --accent-soft:#EEEDFE;
+    --font-display:"Fraunces",Georgia,"Times New Roman",serif;
+    --font-ui:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --radius:14px;
+    --shadow-sm:0 1px 2px rgba(40,36,25,.04), 0 1px 3px rgba(40,36,25,.06);
+    --shadow-md:0 2px 8px rgba(40,36,25,.06), 0 8px 24px rgba(40,36,25,.07);
+    --shadow-lg:0 10px 40px rgba(40,36,25,.12);
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;font-family:var(--font-ui);font-size:14px;line-height:1.5;letter-spacing:-0.006em;
+    color:var(--color-text-primary);
+    background:radial-gradient(1100px 620px at 50% -8%, #fdf7ec 0%, #faf7f0 38%, #f6f3ea 100%) no-repeat fixed, #f6f3ea;
+    -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}
+  #root{max-width:1120px;margin:0 auto;padding:18px 20px 90px;}
+  input,select,textarea,button{font-family:inherit;}
+  button{transition:transform .12s ease, box-shadow .18s ease, background .18s ease, border-color .18s ease, color .18s ease;}
+  button:hover:not(:disabled){transform:translateY(-1px);}
+  button:active:not(:disabled){transform:translateY(0);}
+  input,select,textarea{transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;}
+  input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(83,74,183,.12);}
+  a{color:var(--accent);text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  ::selection{background:#E0DBFA;color:#23211c;}
+  ::-webkit-scrollbar{width:12px;height:12px;}
+  ::-webkit-scrollbar-thumb{background:#dcd7c9;border-radius:9px;border:3px solid transparent;background-clip:content-box;}
+  ::-webkit-scrollbar-thumb:hover{background:#c8c2b1;background-clip:content-box;}
+  .view{animation:fadeUp .32s cubic-bezier(.2,.7,.3,1) both;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+  @keyframes glowPulse{0%,100%{opacity:.5;transform:scale(1);}50%{opacity:.8;transform:scale(1.06);}}
+  .boot{padding:24px;font-size:14px;color:var(--color-text-secondary);}
+  .display{font-family:var(--font-display);letter-spacing:-0.01em;}
+</style>
+</head>
+<body>
+<div id="root"><div class="boot">Loading Isha Karnataka Team Builder…</div></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+/* =====================================================================
+   BACKEND CONFIG  — Apps Script Web App URL (see SETUP.md)
+   ===================================================================== */
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzNPu4EGlgLdxmVdUfplo75FSj18fVc5U1MorA5cWhl3NE64-JX4zwrnoCDLdzILkcz/exec";
+
+const TOKEN_LS = "ika_token";
+const backendReady = () => GAS_URL && !GAS_URL.startsWith("PASTE_YOUR");
+
+async function api(action, payload) {
+  if (!backendReady()) throw new Error("Backend not configured (set GAS_URL).");
+  const res = await fetch(GAS_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" }, // text/plain => no CORS preflight
+    body: JSON.stringify({ action, ...payload })
+  });
+  return res.json();
+}
+
+/* ===================================================================== */
+
+const SECTORS = [
+  { id:"BLR1", name:"Bengaluru 1", centres:[
+    { id:"hebbal", name:"Hebbal", med:9496, url:"https://banglore-centers-area-clusters.netlify.app/hebbal_center_locality_cluster_report" },
+    { id:"yelahanka", name:"Yelahanka", url:"https://banglore-centers-area-clusters.netlify.app/yelahanka_center_locality_cluster_report" },
+    { id:"blr_rural", name:"Bengaluru Rural" },
+  ]},
+  { id:"BLR2", name:"Bengaluru 2", centres:[
+    { id:"indiranagar", name:"Indiranagar", med:5511, url:"https://banglore-centers-area-clusters.netlify.app/indiranagar_center_locality_cluster_report" },
+    { id:"koramangala", name:"Koramangala", med:7814, url:"https://banglore-centers-area-clusters.netlify.app/koramangala_center_locality_cluster_report" },
+    { id:"budigere", name:"Budigere Cross", med:2069, url:"https://banglore-centers-area-clusters.netlify.app/budigere_cross_center_locality_cluster_report" },
+    { id:"banaswadi", name:"Banaswadi", med:6093, url:"https://banglore-centers-area-clusters.netlify.app/banaswadi_center_locality_cluster_report" },
+  ]},
+  { id:"BLR3", name:"Bengaluru 3", centres:[
+    { id:"bannerghatta", name:"Bannerghatta Rd", med:7403, url:"https://banglore-centers-area-clusters.netlify.app/bannerghatta_road_center_locality_cluster_report" },
+    { id:"jayanagar", name:"Jayanagar", med:3113, url:"https://banglore-centers-area-clusters.netlify.app/jayanagar_center_locality_cluster_report" },
+    { id:"girinagar", name:"Girinagar", med:2929, url:"https://banglore-centers-area-clusters.netlify.app/girinagar_center_locality_cluster_report" },
+  ]},
+  { id:"BLR4", name:"Bengaluru 4", centres:[
+    { id:"malleshwaram", name:"Malleshwaram", med:6380, url:"https://banglore-centers-area-clusters.netlify.app/malleswaram_center_locality_cluster_report" },
+    { id:"vijayanagar_blr", name:"Vijayanagar (BLR)", med:7949, url:"https://banglore-centers-area-clusters.netlify.app/vijayanagar_center_locality_cluster_report" },
+    { id:"electronic_city", name:"Electronic City", med:6032, url:"https://banglore-centers-area-clusters.netlify.app/electronic_city_center_locality_cluster_report" },
+  ]},
+  { id:"BLR5", name:"Bengaluru 5", centres:[
+    { id:"marathahalli", name:"Marathahalli", med:6931, url:"https://banglore-centers-area-clusters.netlify.app/marathahalli_center_locality_cluster_report" },
+  ]},
+  { id:"CHIKKABALLAPUR", name:"Chikkaballapur", centres:[
+    { id:"chikkabalapura", name:"Chikkabalapura" },
+    { id:"blr_rural_cbp", name:"Bangalore Rural" },
+    { id:"kolar", name:"Kolar" },
+    { id:"ramanagar", name:"Ramanagar" },
+    { id:"doddaballapur", name:"Doddaballapur" },
+    { id:"chintamani", name:"Chintamani" },
+  ]},
+  { id:"MYSURU", name:"Mysuru", centres:[
+    { id:"mysuru", name:"Mysuru" },
+    { id:"mandya", name:"Mandya" },
+    { id:"kodagu", name:"Kodagu" },
+    { id:"chamarajanagar", name:"Chamarajanagar" },
+    { id:"nanjanagud", name:"Nanjanagud", taluk:true },
+    { id:"napoklu", name:"Napoklu", taluk:true },
+    { id:"bettadapura", name:"Bettadapura", taluk:true },
+    { id:"virajpet", name:"Virajpet", taluk:true },
+  ]},
+  { id:"MANGALURU", name:"Mangaluru", centres:[
+    { id:"udupi", name:"Udupi" },
+    { id:"mangaluru", name:"Mangaluru" },
+    { id:"shivamogga", name:"Shivamogga" },
+    { id:"dakshina_kannada", name:"Dakshina Kannada" },
+  ]},
+  { id:"TUMKUR", name:"Tumkur", centres:[
+    { id:"tumkur", name:"Tumkur" },
+    { id:"hassan", name:"Hassan" },
+    { id:"chikmagalur", name:"Chikmagalur", taluk:true },
+    { id:"tiptur", name:"Tiptur" },
+    { id:"tovinakere", name:"Tovinakere" },
+  ]},
+  { id:"NORTH_KA", name:"North Karnataka", centres:[
+    { id:"belagavi", name:"Belagavi", activeClasses:true },
+    { id:"hubballi", name:"Hubballi-Dharwad", activeClasses:true },
+    { id:"kalaburagi", name:"Kalaburagi", activeClasses:true },
+    { id:"vijayapura_nk", name:"Vijayapura", activeClasses:true },
+    { id:"bagalkot", name:"Bagalkot" },
+    { id:"davanagere", name:"Davanagere" },
+    { id:"chitradurga", name:"Chitradurga" },
+    { id:"uttara_kannada", name:"Uttara Kannada" },
+    { id:"bidar", name:"Bidar" },
+    { id:"gadag", name:"Gadag" },
+    { id:"haveri", name:"Haveri" },
+    { id:"raichur", name:"Raichur" },
+    { id:"yadagiri", name:"Yadagiri" },
+    { id:"ballari", name:"Ballari" },
+    { id:"koppal", name:"Koppal" },
+    { id:"vijayanagara", name:"Vijayanagara" },
+  ]},
+];
+
+const ALL_CENTRES = SECTORS.flatMap(s => s.centres.map(c => ({...c, sectorId:s.id, sectorName:s.name})));
+const SL = ["","Micro centre","Sub-centre","Centre","Super centre"];
+const SC_COLOR = ["#888780","#185FA5","#0F6E56","#534AB7","#854F0B"];
+const SC_BG    = ["#f1efe8","#E6F1FB","#E1F5EE","#EEEDFE","#FAEEDA"];
+
+const ROLES = [
+  { id:"coordinator", n:0, name:"Centre coordinator", desc:"Holds the whole team together. Not inside the triangle.", minS:3, subs:[], special:true },
+  { id:"nurturing", n:1, name:"Nurturing", desc:"Support system & growth for all meditators", minS:1, subs:[
+    {id:"nur_loc",name:"Localities",minS:1},{id:"nur_sadhana",name:"Sadhana",minS:1},
+    {id:"nur_post",name:"Post-program / new meditator",minS:1},{id:"nur_engage",name:"Engagement",minS:2},
+    {id:"nur_adv",name:"Advanced programs",minS:2},{id:"nur_ssb",name:"SSB",minS:2},
+    {id:"nur_train",name:"Training",minS:3},{id:"nur_back",name:"Backoffice",minS:3},
+  ]},
+  { id:"programs", n:2, name:"Programs", desc:"Organising all Isha programs, training organisers", minS:2, subs:[
+    {id:"prog_ie16",name:"IE Steps 1–6",minS:2},{id:"prog_ie7",name:"IE Step 7",minS:2},
+    {id:"prog_hata",name:"Hata Yoga",minS:2},{id:"prog_free",name:"Free programs",minS:2},
+    {id:"prog_sched",name:"Scheduling",minS:3},{id:"prog_adv",name:"Advanced programs",minS:3},
+  ]},
+  { id:"promotions", n:3, name:"Promotions", desc:"On-ground & online reach for Sadhguru's offerings", minS:2, subs:[
+    {id:"prom_ground",name:"On-ground",minS:2},{id:"prom_social",name:"Social media",minS:2},
+    {id:"prom_wabc",name:"Communication (WA BC)",minS:2},{id:"prom_lead",name:"Lead nurturing",minS:3},
+    {id:"prom_content",name:"Content creation",minS:3},{id:"prom_calling",name:"Calling team",minS:3},
+    {id:"prom_orm",name:"ORM",minS:4},
+  ]},
+  { id:"relations", n:4, name:"Relations", desc:"Nurturing people of influence", minS:3, subs:[
+    {id:"rel_corp",name:"Corporates",minS:3},{id:"rel_inst",name:"Institutions",minS:3},
+    {id:"rel_media",name:"Media",minS:4},{id:"rel_celeb",name:"Influencers / celebrities",minS:4},
+    {id:"rel_govt",name:"Govt organisations",minS:4},
+  ]},
+  { id:"temple", n:5, name:"Temple", desc:"Temple offerings — Devi, Shivanga, Naga, Sannidhi", minS:3, subs:[
+    {id:"tem_devi",name:"Devi",minS:3},{id:"tem_shivanga",name:"Shivanga",minS:3},
+    {id:"tem_naga",name:"Naga",minS:4},{id:"tem_yantra",name:"Yantra",minS:4},
+  ]},
+  { id:"biksha", n:6, name:"Biksha", desc:"Raising funds — sponsors, donors, CSR, Annadanam", minS:3, subs:[
+    {id:"bik_anna",name:"Annadanam",minS:3},{id:"bik_donors",name:"Donors",minS:3},
+    {id:"bik_csr",name:"CSR",minS:4},{id:"bik_sponsor",name:"Sponsorship",minS:4},
+  ]},
+  { id:"finance", n:7, name:"Finance", desc:"Planning finances, managing accounts", minS:3, subs:[] },
+  { id:"registration", n:8, name:"Registration", desc:"Participant registration & support", minS:3, subs:[
+    {id:"reg_web",name:"Weblisting programs",minS:3},{id:"reg_launch",name:"Program / event launch",minS:3},
+    {id:"reg_email",name:"Email queries",minS:3},{id:"reg_ivr",name:"IVR",minS:4},
+  ]},
+  { id:"database", n:9, name:"Database", desc:"Analytics and insights", minS:3, subs:[
+    {id:"db_analytics",name:"Analytics",minS:3},{id:"db_train",name:"Training",minS:3},
+    {id:"db_tech",name:"Tech developments",minS:4},
+  ]},
+];
+
+const REGION_ROLES = [
+  {id:"rr_nur_a",v:"nurturing",name:"Nurturing — anchor",level:"A"},{id:"rr_nur_exist",v:"nurturing",name:"Existing meditator support",level:"S"},
+  {id:"rr_nur_new",v:"nurturing",name:"New meditator / post-program",level:"S"},{id:"rr_nur_loc",v:"nurturing",name:"Localities",level:"S"},
+  {id:"rr_nur_sad",v:"nurturing",name:"Sadhana",level:"S"},{id:"rr_nur_eng",v:"nurturing",name:"Engagement",level:"S"},
+  {id:"rr_nur_adv",v:"nurturing",name:"Advanced programs",level:"S"},{id:"rr_nur_train",v:"nurturing",name:"Training",level:"S"},
+  {id:"rr_nur_ssb",v:"nurturing",name:"SSB",level:"S"},{id:"rr_nur_back",v:"nurturing",name:"Backoffice",level:"S"},
+  {id:"rr_prog_a",v:"programs",name:"Programs — anchor",level:"A"},{id:"rr_prog_ie16",v:"programs",name:"PP – IE Steps 1–6",level:"S"},
+  {id:"rr_prog_ie7",v:"programs",name:"PP – IE Step 7",level:"S"},{id:"rr_prog_hata",v:"programs",name:"Hata Yoga",level:"S"},
+  {id:"rr_prog_free",v:"programs",name:"Free programs",level:"S"},{id:"rr_prog_sched",v:"programs",name:"Scheduling",level:"S"},
+  {id:"rr_prom_a",v:"promotions",name:"Promotions — anchor",level:"A"},{id:"rr_prom_ground",v:"promotions",name:"On-ground",level:"S"},
+  {id:"rr_prom_lead",v:"promotions",name:"Lead nurturing",level:"S"},{id:"rr_prom_wabc",v:"promotions",name:"Communication (WA BC)",level:"S"},
+  {id:"rr_prom_social",v:"promotions",name:"Social media",level:"S"},{id:"rr_prom_orm",v:"promotions",name:"ORM",level:"S"},
+  {id:"rr_prom_content",v:"promotions",name:"Content creation",level:"S"},{id:"rr_prom_text",v:"promotions",name:"Content – text/mail",level:"S2"},
+  {id:"rr_prom_video",v:"promotions",name:"Content – video",level:"S2"},{id:"rr_prom_design",v:"promotions",name:"Content – graphic design",level:"S2"},
+  {id:"rr_rel_a",v:"relations",name:"Relations — anchor",level:"A"},{id:"rr_rel_corp",v:"relations",name:"Corporates",level:"S"},
+  {id:"rr_rel_inst",v:"relations",name:"Institutions",level:"S"},{id:"rr_rel_media",v:"relations",name:"Media",level:"S"},
+  {id:"rr_rel_celeb",v:"relations",name:"Celebrities / influencers",level:"S"},
+  {id:"rr_tem_a",v:"temple",name:"Temple — anchor",level:"A"},{id:"rr_tem_gents",v:"temple",name:"Gents – Shivanga / Adiyogi",level:"S"},
+  {id:"rr_tem_ladies",v:"temple",name:"Ladies – Shivanga / Devi",level:"S"},{id:"rr_tem_yantra",v:"temple",name:"Yantra",level:"S"},
+  {id:"rr_tem_sannidhi",v:"temple",name:"Sannidhi",level:"S"},
+  {id:"rr_bik_a",v:"biksha",name:"Biksha — anchor",level:"A"},{id:"rr_bik_sponsor",v:"biksha",name:"Sponsorship",level:"S"},
+  {id:"rr_bik_csr",v:"biksha",name:"CSR",level:"S"},{id:"rr_bik_crowd",v:"biksha",name:"Crowdfunding",level:"S"},
+  {id:"rr_adm_a",v:"admin",name:"Admin / RCO — anchor",level:"A"},{id:"rr_adm_reg",v:"admin",name:"Registration",level:"S"},
+  {id:"rr_adm_db",v:"admin",name:"Database",level:"S"},{id:"rr_adm_fin",v:"admin",name:"Finance",level:"S"},
+  {id:"rr_adm_ivr",v:"admin",name:"IVR",level:"S"},{id:"rr_adm_mat",v:"admin",name:"Material",level:"S"},
+  {id:"rr_out_a",v:"outreach",name:"Outreach — anchor",level:"A"},{id:"rr_out_gramo",v:"outreach",name:"Gramotsavam",level:"S"},
+  {id:"rr_out_vidya",v:"outreach",name:"Isha Vidya",level:"S"},{id:"rr_out_soil",v:"outreach",name:"Save Soil",level:"S"},
+  {id:"rr_out_welfare",v:"outreach",name:"Local welfare",level:"S"},
+  {id:"rr_biz_a",v:"isha_biz",name:"Isha Business — anchor",level:"A"},{id:"rr_biz_life",v:"isha_biz",name:"Isha Life",level:"S"},
+  {id:"rr_biz_veeras",v:"isha_biz",name:"Isha Veeras",level:"S"},{id:"rr_biz_prod",v:"isha_biz",name:"Isha Products",level:"S"},
+];
+
+const VERTS = [
+  {id:"nurturing",name:"Nurturing"},{id:"programs",name:"Programs"},{id:"promotions",name:"Promotions"},
+  {id:"relations",name:"Relations"},{id:"temple",name:"Temple"},{id:"biksha",name:"Biksha"},
+  {id:"admin",name:"Admin/RCO"},{id:"outreach",name:"Outreach"},{id:"isha_biz",name:"Isha Business"},
+];
+
+// ── Profile field config (easy to extend) ──
+const PROFILE_SECTIONS = [
+  { id:"personal", title:"Personal & family", fields:[
+    {k:"dob",label:"Date of birth",type:"date"},
+    {k:"gender",label:"Gender",type:"select",options:["","Male","Female","Other"]},
+    {k:"familyStatus",label:"Family status",type:"select",options:["","Single","Married","Other"]},
+    {k:"spouseName",label:"Spouse name",type:"text"},
+    {k:"dependents",label:"No. of dependents",type:"number"},
+    {k:"bloodGroup",label:"Blood group",type:"text"},
+    {k:"emergencyName",label:"Emergency contact name",type:"text"},
+    {k:"emergencyPhone",label:"Emergency contact phone",type:"tel"},
+  ]},
+  { id:"work", title:"Work & professional", fields:[
+    {k:"jobProfile",label:"Job profile / profession",type:"text"},
+    {k:"employer",label:"Employer / organisation",type:"text"},
+    {k:"skills",label:"Skills",type:"text"},
+    {k:"languages",label:"Languages known",type:"text"},
+    {k:"availability",label:"Volunteering availability (hrs/week)",type:"number"},
+  ]},
+  { id:"isha", title:"Isha journey", fields:[
+    {k:"programsDone",label:"Programs done (IE, Hata, Bhava Spandana…)",type:"text"},
+    {k:"volunteerSince",label:"Volunteering since",type:"text"},
+    {k:"currentSadhana",label:"Current sadhana",type:"text"},
+    {k:"ishaConnectId",label:"IshaConnect ID",type:"text"},
+  ]},
+  { id:"location", title:"Location", fields:[
+    {k:"locality",label:"Locality / area",type:"text"},
+    {k:"address",label:"Address",type:"textarea"},
+    {k:"preferredCentre",label:"Preferred centre",type:"text"},
+  ]},
+];
+
+function rolesForStage(st) { return ROLES.filter(r => r.minS <= st); }
+function subsForStage(role, st) { return role.subs.filter(s => s.minS <= st); }
+function countFill(unit) {
+  const st = unit.stage||1; let f=0,t=0;
+  rolesForStage(st).forEach(r => {
+    t++; if(unit.team?.[r.id]?.name?.trim()) f++;
+    subsForStage(r,st).forEach(sb => { t++; if(unit.team?.[sb.id]?.name?.trim()) f++; });
+  });
+  return {f,t};
+}
+function statusCounts(unit){
+  const st=unit.stage||1; const c={identified:0,interim:0,vacant:0};
+  rolesForStage(st).forEach(r=>{
+    const p=unit.team?.[r.id]||{}; c[p.name?.trim()?(p.status||"identified"):"vacant"]++;
+    subsForStage(r,st).forEach(sb=>{const sp=unit.team?.[sb.id]||{}; c[sp.name?.trim()?(sp.status||"identified"):"vacant"]++;});
+  });
+  return c;
+}
+function inits(name) {
+  if(!name?.trim()) return "?";
+  return name.trim().split(" ").map(w=>w[0]).join("").toUpperCase().slice(0,2);
+}
+function pct(f,t) { return t>0?Math.round(f/t*100):0; }
+
+// ── Shared tiny components ──
+const Badge = ({stage}) => (
+  <span style={{fontSize:10,padding:"2px 8px",borderRadius:20,fontWeight:600,whiteSpace:"nowrap",
+    background:SC_BG[stage]||"#f1efe8",color:SC_COLOR[stage]||"#888780"}}>
+    {stage>0?SL[stage]:"Unset"}
+  </span>
+);
+const PBar = ({f,t}) => (
+  <div style={{height:5,background:"rgba(40,36,25,0.07)",borderRadius:3,overflow:"hidden",marginTop:5}}>
+    <div style={{height:"100%",width:`${pct(f,t)}%`,background:"linear-gradient(90deg,#5B9E8F,#4A5C8A)",borderRadius:3,transition:"width .4s ease"}}/>
+  </div>
+);
+const Dot = ({status}) => (
+  <span style={{display:"inline-block",width:8,height:8,borderRadius:"50%",flexShrink:0,
+    boxShadow:status==="identified"?"0 0 0 3px rgba(29,158,117,.15)":status==="interim"?"0 0 0 3px rgba(239,159,39,.15)":"none",
+    background:status==="identified"?"#1D9E75":status==="interim"?"#EF9F27":"#C8C6C0"}}/>
+);
+const Av = ({person,size=24,onClick,style={}}) => (
+  <div onClick={onClick} style={{width:size,height:size,borderRadius:"50%",overflow:"hidden",flexShrink:0,
+    background:person?.photo?"transparent":"#EEEDFE",border:"1px solid #C9C3F2",
+    display:"flex",alignItems:"center",justifyContent:"center",
+    fontSize:size*0.38,fontWeight:600,color:"#534AB7",cursor:onClick?"pointer":"default",...style}}>
+    {person?.photo?<img src={person.photo} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:inits(person?.name)}
+  </div>
+);
+const TdIn = ({value,placeholder,onChange,w}) => (
+  <input value={value||""} placeholder={placeholder} onChange={e=>onChange(e.target.value)}
+    style={{width:w||"100%",padding:"4px 6px",border:"1px solid transparent",borderRadius:6,
+      fontSize:12.5,background:"transparent",color:"var(--color-text-primary)",outline:"none"}}
+    onFocus={e=>e.target.style.borderColor="var(--color-border-secondary)"}
+    onBlur={e=>e.target.style.borderColor="transparent"}/>
+);
+const StSel = ({status,onChange}) => (
+  <select value={status||"vacant"} onChange={e=>onChange(e.target.value)}
+    style={{fontSize:11,border:"1px solid var(--color-border-tertiary)",borderRadius:6,
+      padding:"3px 5px",background:"var(--color-background-primary)",color:"var(--color-text-primary)"}}>
+    <option value="vacant">Vacant</option>
+    <option value="identified">Identified</option>
+    <option value="interim">Interim</option>
+  </select>
+);
+const SH = ({children,mt}) => (
+  <div style={{fontSize:11,fontWeight:600,color:"var(--color-text-secondary)",textTransform:"uppercase",
+    letterSpacing:".08em",marginBottom:8,marginTop:mt||16}}>{children}</div>
+);
+const Title = ({children,sub}) => (
+  <div style={{marginBottom:14}}>
+    <div className="display" style={{fontSize:24,fontWeight:600,lineHeight:1.1}}>{children}</div>
+    {sub&&<div style={{fontSize:12.5,color:"var(--color-text-secondary)",marginTop:4}}>{sub}</div>}
+  </div>
+);
+const Btn = ({onClick,children,style={},disabled}) => (
+  <button onClick={onClick} disabled={disabled} style={{padding:"6px 13px",borderRadius:8,fontSize:12.5,
+    cursor:disabled?"not-allowed":"pointer",opacity:disabled?0.5:1,boxShadow:"var(--shadow-sm)",
+    border:"1px solid var(--color-border-secondary)",background:"var(--color-background-primary)",
+    color:"var(--color-text-primary)",...style}}>{children}</button>
+);
+const Field = ({label,type,value,options,onChange}) => {
+  const base={width:"100%",padding:"8px 10px",border:"1px solid var(--color-border-tertiary)",
+    borderRadius:9,fontSize:13.5,background:"var(--color-background-primary)",
+    color:"var(--color-text-primary)",outline:"none"};
+  return (
+    <div style={{marginBottom:11}}>
+      <div style={{fontSize:11,color:"var(--color-text-secondary)",marginBottom:4,fontWeight:500}}>{label}</div>
+      {type==="textarea"
+        ? <textarea value={value||""} onChange={e=>onChange(e.target.value)} style={{...base,minHeight:52,resize:"vertical"}}/>
+        : type==="select"
+          ? <select value={value||""} onChange={e=>onChange(e.target.value)} style={base}>
+              {options.map(o=><option key={o} value={o}>{o||"—"}</option>)}
+            </select>
+          : <input type={type||"text"} value={value||""} onChange={e=>onChange(e.target.value)} style={base}/>}
+    </div>
+  );
+};
+const Card = ({children,style={},onClick}) => (
+  <div onClick={onClick} style={{border:"1px solid var(--color-border-tertiary)",borderRadius:"var(--radius)",
+    background:"var(--color-background-primary)",boxShadow:"var(--shadow-sm)",...style}}>{children}</div>
+);
+
+// ── Profile modal (roster slot) ──
+function PModal({label,person={},onSave,onClose}) {
+  const [f,setF] = useState({name:"",contact:"",email:"",status:"vacant",photo:"",nextStep:"",...person});
+  const ref = useRef();
+  const upd = k => v => setF(p=>({...p,[k]:v}));
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(35,33,28,0.45)",backdropFilter:"blur(2px)",display:"flex",
+      alignItems:"center",justifyContent:"center",zIndex:1000,padding:12}}>
+      <div style={{background:"var(--color-background-primary)",borderRadius:18,padding:20,
+        boxShadow:"var(--shadow-lg)",border:"1px solid var(--color-border-secondary)",width:310,maxWidth:"94vw",maxHeight:"90vh",overflowY:"auto"}}>
+        <div style={{fontSize:13,fontWeight:600,marginBottom:12}}>Slot — {label}</div>
+        <div onClick={()=>ref.current?.click()} style={{width:54,height:54,borderRadius:"50%",
+          background:"#EEEDFE",border:"1.5px dashed #AFA9EC",display:"flex",alignItems:"center",
+          justifyContent:"center",cursor:"pointer",overflow:"hidden",margin:"0 auto 14px"}}>
+          {f.photo?<img src={f.photo} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<span style={{fontSize:24,color:"#AFA9EC"}}>+</span>}
+        </div>
+        <input ref={ref} type="file" accept="image/*" style={{display:"none"}}
+          onChange={e=>{const file=e.target.files[0];if(!file)return;const rd=new FileReader();rd.onload=ev=>setF(p=>({...p,photo:ev.target.result}));rd.readAsDataURL(file);}}/>
+        {[["Full name","name","text"],["Mobile","contact","tel"],["Email","email","email"]].map(([lbl,k,t])=>(
+          <Field key={k} label={lbl} type={t} value={f[k]} onChange={upd(k)}/>
+        ))}
+        <Field label="Status" type="select" value={f.status} options={["vacant","identified","interim"]} onChange={upd("status")}/>
+        <Field label="Next step" type="textarea" value={f.nextStep} onChange={upd("nextStep")}/>
+        <div style={{display:"flex",gap:7,justifyContent:"flex-end"}}>
+          <Btn onClick={onClose}>Cancel</Btn>
+          <Btn onClick={()=>{onSave(f);onClose();}} style={{background:"var(--accent)",color:"#fff",borderColor:"var(--accent)",fontWeight:600}}>Save</Btn>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Team table ──
+function TeamTable({unit,onChange,readOnly}) {
+  const [modal,setModal] = useState(null);
+  const st = unit.stage||1;
+  const team = unit.team||{};
+  const upTeam = (id,field,val) => onChange({...unit,team:{...team,[id]:{...team[id],[field]:val}}});
+  const {f,t} = countFill(unit);
+  const cell={padding:"6px 8px",borderBottom:"1px solid var(--color-border-tertiary)"};
+  const renderRow = (item, isSub) => {
+    const p = team[item.id]||{};
+    return (
+      <tr key={item.id} style={{background:isSub?"var(--color-background-secondary)":(item.special?"rgba(83,74,183,0.05)":undefined)}}>
+        <td style={{...cell, paddingLeft:isSub?22:8}}>
+          {isSub
+            ? <span style={{fontSize:11.5,color:"var(--color-text-secondary)"}}>↳ {item.name}</span>
+            : <><div style={{fontWeight:600,fontSize:12.5,color:item.special?"#534AB7":undefined}}>{item.special?"★ ":item.n>0?`${item.n}. `:""}{item.name}</div>
+                <div style={{fontSize:10,color:"var(--color-text-tertiary)",marginTop:1}}>{item.desc}</div></>}
+        </td>
+        <td style={cell}>
+          <div style={{display:"flex",alignItems:"center",gap:6}}>
+            <Av person={p} size={isSub?20:24} onClick={readOnly?undefined:()=>setModal({id:item.id,label:item.name,person:p})}/>
+            {readOnly ? <span style={{fontSize:12.5}}>{p.name||<span style={{color:"var(--color-text-tertiary)"}}>—</span>}</span>
+              : <TdIn value={p.name} placeholder="Name" onChange={v=>upTeam(item.id,"name",v)} w="100%"/>}
+          </div>
+        </td>
+        <td style={cell}>
+          {readOnly ? <span style={{fontSize:11.5,color:"var(--color-text-secondary)"}}>{p.contact||""}</span>
+            : <TdIn value={p.contact} placeholder="Mobile" onChange={v=>upTeam(item.id,"contact",v)} w={90}/>}
+        </td>
+        <td style={cell}>
+          <div style={{display:"flex",alignItems:"center",gap:5}}>
+            <Dot status={p.status}/>
+            {readOnly ? <span style={{fontSize:11.5}}>{p.name?.trim()?(p.status||"identified"):"vacant"}</span>
+              : <StSel status={p.status} onChange={v=>upTeam(item.id,"status",v)}/>}
+          </div>
+        </td>
+        <td style={cell}>
+          {readOnly ? <span style={{fontSize:11.5,color:"var(--color-text-secondary)"}}>{p.nextStep||""}</span>
+            : <TdIn value={p.nextStep} placeholder="Next step…" onChange={v=>upTeam(item.id,"nextStep",v)} w="100%"/>}
+        </td>
+      </tr>
+    );
+  };
+  return (
+    <div>
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+        <div style={{flex:1}}><PBar f={f} t={t}/></div>
+        <span style={{fontSize:11.5,color:"var(--color-text-tertiary)",whiteSpace:"nowrap"}}>{f}/{t} · {pct(f,t)}%</span>
+      </div>
+      <Card style={{overflowX:"auto",padding:0}}>
+        <table style={{width:"100%",borderCollapse:"collapse",fontSize:12.5,minWidth:560}}>
+          <thead><tr>{["Role","Name","Contact","Status","Next step"].map(h=>(
+            <th key={h} style={{padding:"8px",textAlign:"left",fontSize:11,fontWeight:600,
+              color:"var(--color-text-secondary)",borderBottom:"1px solid var(--color-border-tertiary)",
+              background:"var(--color-background-secondary)"}}>{h}</th>
+          ))}</tr></thead>
+          <tbody>
+            {rolesForStage(st).map(r => [renderRow(r,false), ...subsForStage(r,st).map(sb=>renderRow(sb,true))])}
+          </tbody>
+        </table>
+      </Card>
+      {modal&&<PModal label={modal.label} person={modal.person}
+        onSave={data=>onChange({...unit,team:{...team,[modal.id]:{...team[modal.id],...data}}})}
+        onClose={()=>setModal(null)}/>}
+    </div>
+  );
+}
+
+// ── Detail view (centre editor) ──
+function DetailView({cid, S, updCd, nav, readOnly}) {
+  const [showCoord,setShowCoord] = useState(false);
+  const [newName,setNewName] = useState("");
+  const [newStage,setNewStage] = useState(3);
+  const cInfo = ALL_CENTRES.find(c=>c.id===cid);
+  const cData = S?.centres?.[cid]||{stage:0,units:[],notes:"",coord:{}};
+  const coord = cData.coord||{};
+  const stage = cData.stage||0;
+  if(!cInfo) return null;
+  const addSelf = () => {
+    if((cData.units||[]).find(u=>u.isSelf)) return;
+    updCd(cid,{units:[{id:"self_"+cid,name:cInfo.name+" (main)",stage:stage||3,team:{},isSelf:true},...(cData.units||[])]});
+  };
+  const addUnit = () => {
+    if(!newName.trim()) return;
+    updCd(cid,{units:[...(cData.units||[]),{id:"u"+Date.now(),name:newName.trim(),stage:newStage,team:{}}]});
+    setNewName("");
+  };
+  const delUnit = uid => updCd(cid,{units:(cData.units||[]).filter(u=>u.id!==uid)});
+  return (
+    <div>
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:14,flexWrap:"wrap"}}>
+        <Btn onClick={()=>nav("dashboard")}>← Dashboard</Btn>
+        <div>
+          <div className="display" style={{fontSize:20,fontWeight:600}}>{cInfo.name}</div>
+          <div style={{fontSize:12,color:"var(--color-text-secondary)"}}>
+            {cInfo.sectorName}{cInfo.med>0&&` · ${cInfo.med.toLocaleString()} meditators`}
+            {cInfo.activeClasses&&<span style={{color:"#0F6E56",fontWeight:600}}> · Classes active</span>}
+            {cInfo.taluk&&<span style={{color:"#854F0B"}}> · Taluk</span>}
+          </div>
+        </div>
+        {cInfo.url&&<a href={cInfo.url} target="_blank" rel="noreferrer"
+          style={{marginLeft:"auto",fontSize:11.5,color:"#185FA5",textDecoration:"none"}}>📍 Cluster map</a>}
+      </div>
+      <div style={{background:"linear-gradient(135deg,#EEEDFE,#F5F1FB)",border:"1px solid #C9C3F2",borderRadius:"var(--radius)",
+        padding:"12px 16px",marginBottom:14,display:"flex",alignItems:"center",gap:12,boxShadow:"var(--shadow-sm)"}}>
+        <Av person={coord} size={40} style={{background:"#534AB7",color:"#fff",borderColor:"#534AB7"}} onClick={readOnly?undefined:()=>setShowCoord(true)}/>
+        <div style={{flex:1}}>
+          <div style={{fontSize:12,fontWeight:600,color:"#534AB7"}}>Centre coordinator</div>
+          {coord.name?<div style={{fontSize:12.5}}>{coord.name}{coord.contact&&` · ${coord.contact}`}</div>
+            :<div style={{fontSize:11.5,color:"var(--color-text-secondary)"}}>Not registered yet</div>}
+        </div>
+        {!readOnly&&<Btn onClick={()=>setShowCoord(true)} style={{fontSize:11.5,color:"#534AB7",borderColor:"#C9C3F2"}}>{coord.name?"Edit":"Register"}</Btn>}
+      </div>
+      {showCoord&&<PModal label="Centre coordinator" person={coord}
+        onSave={data=>updCd(cid,{coord:{...coord,...data}})} onClose={()=>setShowCoord(false)}/>}
+      <SH mt={0}>Centre stage</SH>
+      <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:16}}>
+        {[1,2,3,4].map(s=>(
+          <button key={s} onClick={readOnly?undefined:()=>updCd(cid,{stage:s})}
+            style={{padding:"5px 13px",borderRadius:20,fontSize:11.5,cursor:readOnly?"default":"pointer",fontWeight:stage===s?700:500,
+              border:`1px solid ${stage===s?SC_COLOR[s]:"var(--color-border-tertiary)"}`,
+              background:stage===s?SC_BG[s]:"var(--color-background-primary)",
+              color:stage===s?SC_COLOR[s]:"var(--color-text-secondary)"}}>{SL[s]}</button>
+        ))}
+      </div>
+      <SH>Units</SH>
+      {!(cData.units||[]).length&&<div style={{fontSize:12.5,color:"var(--color-text-tertiary)",marginBottom:8}}>No units yet.</div>}
+      {(cData.units||[]).map(u=>{
+        const {f,t}=countFill(u);
+        return (
+          <Card key={u.id} style={{display:"flex",alignItems:"center",gap:10,padding:"10px 12px",marginBottom:6}}>
+            <div style={{flex:1,minWidth:0}}>
+              <div style={{fontSize:12.5,fontWeight:600}}>{u.name}
+                {u.isSelf&&<span style={{fontSize:10,color:"#534AB7",background:"#EEEDFE",padding:"1px 6px",borderRadius:8,marginLeft:5}}>main</span>}
+              </div>
+              <div style={{fontSize:10.5,color:"var(--color-text-tertiary)"}}>{SL[u.stage||1]} · {f}/{t} roles</div>
+              <PBar f={f} t={t}/>
+            </div>
+            <Badge stage={u.stage||1}/>
+            <Btn onClick={()=>nav("unit",cid,u.id)}>{readOnly?"View team":"Edit team"}</Btn>
+            {!readOnly&&<button onClick={()=>delUnit(u.id)} style={{padding:"4px 8px",fontSize:11,cursor:"pointer",
+              border:"1px solid #fca5a5",borderRadius:7,background:"transparent",color:"#dc2626"}}>✕</button>}
+          </Card>
+        );
+      })}
+      {!readOnly&&<>
+        <div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap",alignItems:"center"}}>
+          <Btn onClick={addSelf} style={{fontWeight:600,background:"var(--color-background-secondary)"}}>+ Use {cInfo.name} as main unit</Btn>
+        </div>
+        <div style={{display:"flex",gap:6,marginTop:8,flexWrap:"wrap",alignItems:"center"}}>
+          <input value={newName} onChange={e=>setNewName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&addUnit()}
+            placeholder="New sub-unit name (e.g. Mysuru North)"
+            style={{flex:1,minWidth:140,padding:"7px 10px",border:"1px solid var(--color-border-tertiary)",
+              borderRadius:9,fontSize:12.5,background:"var(--color-background-primary)",color:"var(--color-text-primary)",outline:"none"}}/>
+          <select value={newStage} onChange={e=>setNewStage(+e.target.value)}
+            style={{padding:"7px 9px",border:"1px solid var(--color-border-tertiary)",borderRadius:9,
+              fontSize:11.5,background:"var(--color-background-primary)",color:"var(--color-text-primary)"}}>
+            {[1,2,3,4].map(s=><option key={s} value={s}>{SL[s]}</option>)}
+          </select>
+          <Btn onClick={addUnit}>+ Add</Btn>
+        </div>
+      </>}
+      <SH>Notes</SH>
+      <textarea value={cData.notes||""} onChange={readOnly?undefined:(e=>updCd(cid,{notes:e.target.value}))} readOnly={readOnly}
+        placeholder="Planning notes, subdivision rationale…"
+        style={{width:"100%",padding:"10px 12px",border:"1px solid var(--color-border-tertiary)",
+          borderRadius:11,fontSize:12.5,resize:"vertical",minHeight:54,
+          background:"var(--color-background-primary)",color:"var(--color-text-primary)",outline:"none"}}/>
+      <div style={{display:"flex",justifyContent:"flex-end",marginTop:8}}>
+        <Btn onClick={()=>nav("blueprint")}>R&R blueprint ↗</Btn>
+      </div>
+    </div>
+  );
+}
+
+// ── Region view (admin editor) ──
+function RegionView({S, setS}) {
+  const [modal,setModal] = useState(null);
+  const vmap={};REGION_ROLES.forEach(r=>{if(!vmap[r.v])vmap[r.v]=[];vmap[r.v].push(r);});
+  const upReg=(id,field,val)=>setS(p=>({...p,region:{...p.region,[id]:{...(p.region?.[id]||{}),[field]:val}}}));
+  const cell={padding:"6px 8px",borderBottom:"1px solid var(--color-border-tertiary)"};
+  return (
+    <div>
+      <Title sub="Region-level anchors & support roles">Region team</Title>
+      {VERTS.map(v=>{
+        const roles=vmap[v.id]||[];if(!roles.length)return null;
+        const filled=roles.filter(r=>S.region?.[r.id]?.name?.trim()).length;
+        return (
+          <div key={v.id} style={{marginBottom:20}}>
+            <div style={{fontSize:11,fontWeight:700,color:"var(--color-text-secondary)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:5}}>
+              {v.name} — {filled}/{roles.length}
+            </div>
+            <PBar f={filled} t={roles.length}/>
+            <Card style={{overflowX:"auto",marginTop:9,padding:0}}>
+              <table style={{width:"100%",borderCollapse:"collapse",fontSize:12.5,minWidth:560}}>
+                <thead><tr>{["Role","Name","Contact","Status","Next step"].map(h=>(
+                  <th key={h} style={{padding:"7px 8px",textAlign:"left",fontSize:11,fontWeight:600,
+                    color:"var(--color-text-secondary)",borderBottom:"1px solid var(--color-border-tertiary)",
+                    background:"var(--color-background-secondary)"}}>{h}</th>
+                ))}</tr></thead>
+                <tbody>
+                  {roles.map(r=>{
+                    const p=S.region?.[r.id]||{};const isA=r.level==="A";const isS2=r.level==="S2";
+                    return (
+                      <tr key={r.id} style={{background:isS2?"var(--color-background-secondary)":undefined}}>
+                        <td style={{...cell,paddingLeft:isS2?20:8}}>
+                          <div style={{fontWeight:isA?700:500,fontSize:isA?13:12.5,color:isA?"var(--color-text-primary)":"var(--color-text-secondary)"}}>
+                            {isS2?"↳ ":!isA?"• ":""}{r.name}
+                          </div>
+                        </td>
+                        <td style={cell}>
+                          <div style={{display:"flex",alignItems:"center",gap:6}}>
+                            <Av person={p} onClick={()=>setModal({id:r.id,label:r.name,person:p})}/>
+                            <TdIn value={p.name} placeholder="Name" onChange={v=>upReg(r.id,"name",v)} w="100%"/>
+                          </div>
+                        </td>
+                        <td style={cell}><TdIn value={p.contact} placeholder="Mobile" onChange={v=>upReg(r.id,"contact",v)} w={90}/></td>
+                        <td style={cell}>
+                          <div style={{display:"flex",alignItems:"center",gap:5}}>
+                            <Dot status={p.status}/><StSel status={p.status} onChange={v=>upReg(r.id,"status",v)}/>
+                          </div>
+                        </td>
+                        <td style={cell}><TdIn value={p.nextStep} placeholder="Next step…" onChange={v=>upReg(r.id,"nextStep",v)} w="100%"/></td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </Card>
+          </div>
+        );
+      })}
+      {modal&&<PModal label={modal.label} person={modal.person}
+        onSave={data=>setS(p=>({...p,region:{...p.region,[modal.id]:{...(p.region?.[modal.id]||{}),...data}}}))}
+        onClose={()=>setModal(null)}/>}
+    </div>
+  );
+}
+
+// ── Region dashboard ──
+function RegionDashboard({S, getCd, nav, user}) {
+  let f=0,t=0,sc={identified:0,interim:0,vacant:0};
+  ALL_CENTRES.forEach(c=>{(getCd(c.id).units||[]).forEach(u=>{const x=countFill(u);f+=x.f;t+=x.t;const s=statusCounts(u);sc.identified+=s.identified;sc.interim+=s.interim;sc.vacant+=s.vacant;});});
+  REGION_ROLES.forEach(r=>{const p=S.region?.[r.id]||{};t++;if(p.name?.trim()){f++;sc[p.status||"identified"]++;}else sc.vacant++;});
+  const liveC=ALL_CENTRES.filter(c=>{const d=getCd(c.id);return (d.units||[]).length>0||d.stage>0;}).length;
+  const Kpi=({n,l,c})=>(
+    <Card style={{padding:"14px 16px",flex:1,minWidth:118,boxShadow:"var(--shadow-sm)"}}>
+      <div className="display" style={{fontSize:30,fontWeight:600,lineHeight:1,color:c||"var(--color-text-primary)"}}>{n}</div>
+      <div style={{fontSize:11,color:"var(--color-text-secondary)",marginTop:5,textTransform:"uppercase",letterSpacing:".05em"}}>{l}</div>
+    </Card>
+  );
+  const vfill={}; VERTS.forEach(v=>vfill[v.id]={f:0,t:0});
+  ALL_CENTRES.forEach(c=>{(getCd(c.id).units||[]).forEach(u=>{
+    const st=u.stage||1;
+    rolesForStage(st).forEach(r=>{ const vid = r.id==="coordinator"?null:r.id; if(!vid||!vfill[vid])return;
+      vfill[vid].t++; if(u.team?.[r.id]?.name?.trim()) vfill[vid].f++;
+      subsForStage(r,st).forEach(sb=>{vfill[vid].t++; if(u.team?.[sb.id]?.name?.trim()) vfill[vid].f++;});
+    });
+  });});
+  return (
+    <div>
+      <Title sub="Karnataka · live snapshot of roles & status">Region dashboard</Title>
+      <div style={{display:"flex",gap:9,flexWrap:"wrap",marginBottom:18}}>
+        <Kpi n={ALL_CENTRES.length} l="centres"/>
+        <Kpi n={liveC} l="set up" c="#1D9E75"/>
+        <Kpi n={`${pct(f,t)}%`} l={`roles filled`} c="#4A5C8A"/>
+        <Kpi n={sc.identified} l="identified" c="#1D9E75"/>
+        <Kpi n={sc.interim} l="interim" c="#EF9F27"/>
+        <Kpi n={sc.vacant} l="vacant" c="#a4a194"/>
+      </div>
+      <SH mt={0}>Fill by vertical (across centres)</SH>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:9,marginBottom:20}}>
+        {VERTS.map(v=>{const x=vfill[v.id];return (
+          <Card key={v.id} style={{padding:12}}>
+            <div style={{display:"flex",justifyContent:"space-between",fontSize:12.5,fontWeight:600,marginBottom:3}}>
+              <span>{v.name}</span><span style={{color:"var(--color-text-tertiary)",fontWeight:400}}>{x.f}/{x.t}</span>
+            </div>
+            <PBar f={x.f} t={x.t}/>
+          </Card>
+        );})}
+      </div>
+      <SH>Centres — tap for a centre dashboard</SH>
+      {SECTORS.map(sec=>(
+        <div key={sec.id} style={{marginBottom:18}}>
+          <div style={{fontSize:11,fontWeight:700,color:"var(--color-text-secondary)",textTransform:"uppercase",letterSpacing:".08em",marginBottom:9}}>{sec.name}</div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(152px,1fr))",gap:8}}>
+            {sec.centres.map(c=>{
+              const d=getCd(c.id);const stage=d.stage||0;
+              let tf=0,tt=0;(d.units||[]).forEach(u=>{const x=countFill(u);tf+=x.f;tt+=x.t;});
+              const live=(d.units||[]).length>0||stage>0;
+              const mine=user.assignedCentre===c.id;
+              return (
+                <Card key={c.id} onClick={()=>nav("centreDash",c.id)}
+                  style={{padding:11,cursor:"pointer",
+                    border:`1px solid ${mine?"#534AB7":live?"#4A5C8A":"var(--color-border-tertiary)"}`,
+                    boxShadow:live?"var(--shadow-md)":"var(--shadow-sm)"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",gap:4,marginBottom:5}}>
+                    <div style={{fontSize:12.5,fontWeight:600}}>{c.name}{mine&&<span style={{fontSize:9,color:"#534AB7"}}> ★ mine</span>}</div>
+                    <Badge stage={stage}/>
+                  </div>
+                  {tt>0?<><PBar f={tf} t={tt}/><div style={{fontSize:10,color:"var(--color-text-tertiary)",marginTop:3}}>{tf}/{tt} roles</div></>
+                    :<div style={{fontSize:10,color:"var(--color-text-tertiary)",marginTop:4}}>{(d.units||[]).length} units</div>}
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Centre dashboard ──
+function CentreDashboard({cid, S, getCd, nav, canEdit}) {
+  const cInfo=ALL_CENTRES.find(c=>c.id===cid);
+  const d=getCd(cid);
+  if(!cInfo) return <div>Centre not found.</div>;
+  const coord=d.coord||{};
+  return (
+    <div>
+      <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12,flexWrap:"wrap"}}>
+        <Btn onClick={()=>nav("dashboard")}>← Region</Btn>
+        <div>
+          <div className="display" style={{fontSize:20,fontWeight:600}}>{cInfo.name}</div>
+          <div style={{fontSize:12,color:"var(--color-text-secondary)"}}>{cInfo.sectorName} · <Badge stage={d.stage||0}/></div>
+        </div>
+        {canEdit&&<Btn onClick={()=>nav("detail",cid)} style={{marginLeft:"auto",fontWeight:600,background:"var(--accent)",color:"#fff",borderColor:"var(--accent)"}}>✎ Edit centre</Btn>}
+      </div>
+      <div style={{background:"linear-gradient(135deg,#EEEDFE,#F5F1FB)",border:"1px solid #C9C3F2",borderRadius:"var(--radius)",padding:"12px 16px",marginBottom:14,display:"flex",alignItems:"center",gap:12,boxShadow:"var(--shadow-sm)"}}>
+        <Av person={coord} size={38} style={{background:"#534AB7",color:"#fff",borderColor:"#534AB7"}}/>
+        <div><div style={{fontSize:12,fontWeight:600,color:"#534AB7"}}>Centre coordinator</div>
+          <div style={{fontSize:12.5}}>{coord.name||<span style={{color:"var(--color-text-secondary)"}}>Not registered</span>}{coord.contact?` · ${coord.contact}`:""}</div></div>
+      </div>
+      {!(d.units||[]).length&&<div style={{fontSize:13,color:"var(--color-text-tertiary)",padding:"20px 0"}}>No units planned yet. {canEdit&&<a style={{cursor:"pointer"}} onClick={()=>nav("detail",cid)}>Set up this centre →</a>}</div>}
+      {(d.units||[]).map(u=>{
+        const st=u.stage||1;const {f,t}=countFill(u);
+        return (
+          <Card key={u.id} style={{marginBottom:12,overflow:"hidden",padding:0}}>
+            <div style={{display:"flex",alignItems:"center",gap:8,padding:"9px 13px",background:"var(--color-background-secondary)"}}>
+              <div style={{fontWeight:700,fontSize:13}}>{u.name}</div><Badge stage={st}/>
+              <span style={{marginLeft:"auto",fontSize:11.5,color:"var(--color-text-tertiary)"}}>{f}/{t} · {pct(f,t)}%</span>
+              {canEdit&&<Btn onClick={()=>nav("unit",cid,u.id)} style={{fontSize:11}}>✎ team</Btn>}
+            </div>
+            <div style={{padding:"4px 0"}}>
+              {rolesForStage(st).map(r=>{
+                const p=u.team?.[r.id]||{};
+                return (
+                  <div key={r.id}>
+                    <div style={{display:"flex",alignItems:"flex-start",gap:8,padding:"7px 13px",borderTop:"1px solid var(--color-border-tertiary)"}}>
+                      <div style={{minWidth:150,fontSize:12.5,fontWeight:600,color:r.special?"#534AB7":undefined}}>{r.special?"★ ":r.n>0?`${r.n}. `:""}{r.name}</div>
+                      <div style={{flex:1,minWidth:0}}>
+                        <div style={{display:"flex",alignItems:"center",gap:6,fontSize:12.5}}>
+                          <Dot status={p.name?.trim()?(p.status||"identified"):"vacant"}/>
+                          {p.name?.trim()?<span>{p.name}{p.contact?` · ${p.contact}`:""}</span>:<span style={{color:"var(--color-text-tertiary)"}}>Vacant</span>}
+                        </div>
+                        {p.nextStep&&<div style={{fontSize:11.5,color:"#854F0B",marginTop:2}}>→ {p.nextStep}</div>}
+                      </div>
+                    </div>
+                    {subsForStage(r,st).map(sb=>{const sp=u.team?.[sb.id]||{};return (
+                      <div key={sb.id} style={{display:"flex",alignItems:"flex-start",gap:8,padding:"3px 13px 3px 28px",fontSize:11.5,background:"var(--color-background-secondary)"}}>
+                        <div style={{minWidth:138,color:"var(--color-text-secondary)"}}>↳ {sb.name}</div>
+                        <div style={{flex:1,minWidth:0}}>
+                          <div style={{display:"flex",alignItems:"center",gap:6}}>
+                            <Dot status={sp.name?.trim()?(sp.status||"identified"):"vacant"}/>
+                            {sp.name?.trim()?<span>{sp.name}</span>:<span style={{color:"var(--color-text-tertiary)"}}>Vacant</span>}
+                          </div>
+                          {sp.nextStep&&<div style={{fontSize:10.5,color:"#854F0B"}}>→ {sp.nextStep}</div>}
+                        </div>
+                      </div>
+                    );})}
+                  </div>
+                );
+              })}
+            </div>
+          </Card>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Interactive blueprint (triangle map + list) ──
+function BlueprintTree() {
+  const [mode,setMode] = useState("map");
+  const [open,setOpen] = useState({});
+  const [selVert,setSelVert] = useState("nurturing");
+  const [sel,setSel] = useState(ROLES[1]);
+  const toggle = id => setOpen(o=>({...o,[id]:!o[id]}));
+  const stages=[
+    {s:1,n:"Micro centre",c:"#185FA5",desc:"Locality / satsang level"},
+    {s:2,n:"Sub-centre",c:"#0F6E56",desc:"Neighbourhood scale"},
+    {s:3,n:"Centre",c:"#534AB7",desc:"Full centre"},
+    {s:4,n:"Super centre",c:"#854F0B",desc:"Hub for sub-centres"},
+  ];
+  const colOf = r => r.special?"#534AB7":SC_COLOR[Math.min(r.minS,4)];
+
+  // ----- list-mode node -----
+  const Node = ({role}) => {
+    const isOpen=open[role.id]; const hasSubs=role.subs.length>0; const isSel=sel?.id===role.id;
+    const col=colOf(role);
+    return (
+      <div style={{marginBottom:5}}>
+        <div onClick={()=>{setSel(role); if(!role.special)setSelVert(role.id); if(hasSubs)toggle(role.id);}}
+          style={{display:"flex",alignItems:"center",gap:9,padding:"8px 11px",borderRadius:10,cursor:"pointer",
+            boxShadow:isSel?"var(--shadow-sm)":"none",
+            border:`1px solid ${isSel?col:"var(--color-border-tertiary)"}`,
+            background:isSel?(SC_BG[Math.min(role.minS,4)]):"var(--color-background-primary)"}}>
+          <span style={{width:16,textAlign:"center",color:"var(--color-text-tertiary)",fontSize:11}}>{hasSubs?(isOpen?"▾":"▸"):"•"}</span>
+          <span style={{width:10,height:10,borderRadius:"50%",background:col,flexShrink:0}}/>
+          <span style={{fontSize:13.5,fontWeight:600,color:role.special?"#534AB7":undefined}}>{role.special?"★ ":role.n>0?`${role.n}. `:""}{role.name}</span>
+          <span style={{marginLeft:"auto",fontSize:10,color:"var(--color-text-tertiary)"}}>Stage {role.minS}+{hasSubs?` · ${role.subs.length}`:""}</span>
+        </div>
+        {hasSubs&&isOpen&&(
+          <div style={{marginLeft:21,paddingLeft:11,borderLeft:"2px solid var(--color-border-tertiary)",marginTop:5}}>
+            {role.subs.map(sb=>(
+              <div key={sb.id} onClick={()=>setSel({...sb,parent:role.name,desc:`Sub-role of ${role.name}.`})}
+                style={{display:"flex",alignItems:"center",gap:8,padding:"6px 10px",borderRadius:8,marginBottom:4,cursor:"pointer",
+                  border:`1px solid ${sel?.id===sb.id?col:"transparent"}`,
+                  background:sel?.id===sb.id?SC_BG[Math.min(sb.minS,4)]:"var(--color-background-secondary)"}}>
+                <span style={{fontSize:11,color:"var(--color-text-tertiary)"}}>↳</span>
+                <span style={{fontSize:12.5}}>{sb.name}</span>
+                <span style={{marginLeft:"auto",fontSize:10,color:"var(--color-text-tertiary)"}}>S{sb.minS}+</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // ----- map geometry -----
+  const verts = ROLES.filter(r=>!r.special);
+  const coord = ROLES.find(r=>r.special);
+  const cx=410, cy=345, R=208, R2=322;
+  const polar=(a,r)=>[cx+r*Math.cos(a), cy+r*Math.sin(a)];
+  const nodes = verts.map((r,i)=>{ const a=(-90 + i*(360/verts.length))*Math.PI/180; const [x,y]=polar(a,R); return {r,a,x,y}; });
+  const selNode = nodes.find(n=>n.r.id===selVert);
+  let subNodes=[];
+  if(selNode){
+    const subs=selNode.r.subs||[]; const N=subs.length;
+    const stepDeg = N>1?Math.min(13,86/(N-1)):0;
+    const baseDeg = selNode.a*180/Math.PI;
+    subNodes = subs.map((sb,i)=>{ const a=(baseDeg+(i-(N-1)/2)*stepDeg)*Math.PI/180; const [x,y]=polar(a,R2); return {sb,x,y}; });
+  }
+  const Pill = ({x,y,label,fill,stroke,textColor,onClick,bold,dim,small}) => {
+    const w = Math.max(small?44:62, label.length*(small?6.0:6.9)+18);
+    const h = small?22:28;
+    return (
+      <g onClick={onClick} style={{cursor:"pointer",opacity:dim?0.42:1,transition:"opacity .2s ease"}}>
+        <rect x={x-w/2} y={y-h/2} width={w} height={h} rx={h/2} fill={fill} stroke={stroke} strokeWidth={bold?2:1}/>
+        <text x={x} y={y} textAnchor="middle" dominantBaseline="central" fontSize={small?10.5:12} fontWeight={bold?700:600} fill={textColor}>{label}</text>
+      </g>
+    );
+  };
+
+  const detail = sel && (
+    <Card style={{padding:18,boxShadow:"var(--shadow-md)"}}>
+      <div style={{fontSize:10,color:"var(--color-text-tertiary)",textTransform:"uppercase",letterSpacing:".07em",marginBottom:5}}>
+        {sel.parent?`Sub-role · ${sel.parent}`:sel.special?"★ Special role":"Vertical"} {sel.minS?`· Stage ${sel.minS}+`:""}
+      </div>
+      <div className="display" style={{fontSize:19,fontWeight:600,marginBottom:7,color:sel.special?"#534AB7":undefined}}>{sel.name}</div>
+      <div style={{fontSize:13.5,color:"var(--color-text-secondary)",lineHeight:1.55,marginBottom:12}}>{sel.desc}</div>
+      {sel.subs&&sel.subs.length>0&&(
+        <div>
+          <div style={{fontSize:11,fontWeight:600,color:"var(--color-text-secondary)",marginBottom:6}}>Branches into — tap to explore</div>
+          <div style={{display:"flex",flexWrap:"wrap",gap:6}}>
+            {sel.subs.map(sb=>(
+              <span key={sb.id} onClick={()=>{setSelVert(sel.id);setSel({...sb,parent:sel.name,desc:`Sub-role of ${sel.name}.`});}}
+                style={{fontSize:11.5,padding:"4px 10px",borderRadius:14,cursor:"pointer",background:"var(--color-background-secondary)",color:"var(--color-text-secondary)"}}>{sb.name}</span>
+            ))}
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+
+  return (
+    <div>
+      <Title sub={<span>The centre sits at the core; verticals branch outward. Tap a vertical to fan out its sub-roles. <a href="https://canva.link/eomoga9bzxj0q9g" target="_blank" rel="noreferrer">open Canva ↗</a></span>}>Roles &amp; Responsibilities</Title>
+      <div style={{display:"flex",gap:8,marginBottom:14,alignItems:"center",flexWrap:"wrap"}}>
+        <div style={{display:"flex",background:"var(--color-background-secondary)",padding:4,borderRadius:11}}>
+          {[["map","△ Triangle map"],["list","☰ List"]].map(([m,l])=>(
+            <button key={m} onClick={()=>setMode(m)} style={{padding:"6px 13px",fontSize:12.5,border:"none",borderRadius:8,cursor:"pointer",
+              fontWeight:mode===m?700:500,boxShadow:mode===m?"var(--shadow-sm)":"none",
+              background:mode===m?"var(--color-background-primary)":"transparent",color:mode===m?"#534AB7":"var(--color-text-secondary)"}}>{l}</button>
+          ))}
+        </div>
+        <div style={{marginLeft:"auto",display:"flex",gap:6,flexWrap:"wrap"}}>
+          {stages.map(d=>(
+            <span key={d.s} style={{fontSize:10.5,padding:"3px 9px",borderRadius:12,background:SC_BG[d.s],color:d.c,fontWeight:600}}>{d.s}·{d.n}</span>
+          ))}
+        </div>
+      </div>
+      {mode==="map" ? (
+        <div style={{display:"flex",gap:16,flexWrap:"wrap",alignItems:"flex-start"}}>
+          <Card style={{flex:"1 1 470px",minWidth:300,padding:6,background:"radial-gradient(circle at 50% 46%, #ffffff, #f9f6ef)"}}>
+            <svg viewBox="0 0 820 700" style={{width:"100%",height:"auto",display:"block"}}>
+              {nodes.map(n=>(
+                <line key={"l"+n.r.id} x1={cx} y1={cy} x2={n.x} y2={n.y}
+                  stroke={n.r.id===selVert?colOf(n.r):"#d9d4c7"} strokeWidth={n.r.id===selVert?2.5:1.2} opacity={n.r.id===selVert?0.9:0.55}/>
+              ))}
+              {selNode&&subNodes.map((s,i)=>(
+                <line key={"sl"+i} x1={selNode.x} y1={selNode.y} x2={s.x} y2={s.y} stroke={colOf(selNode.r)} strokeWidth={1.3} opacity={0.5}/>
+              ))}
+              <g onClick={()=>setSel(coord)} style={{cursor:"pointer"}}>
+                <polygon points={`${cx},${cy-74} ${cx-86},${cy+58} ${cx+86},${cy+58}`} fill="#EEF0F6" stroke="#4A5C8A" strokeWidth={1.5}/>
+                <polygon points={`${cx},${cy-44} ${cx-58},${cy+44} ${cx+58},${cy+44}`} fill="#5B9E8F" opacity={0.16}/>
+                <polygon points={`${cx},${cy-18} ${cx-34},${cy+33} ${cx+34},${cy+33}`} fill="#8BA8C0" opacity={0.18}/>
+                <text x={cx} y={cy+6} textAnchor="middle" fontFamily="Fraunces, Georgia, serif" fontSize={18} fontWeight={600} fill="#3d4a6b">CENTRE</text>
+                <text x={cx} y={cy+27} textAnchor="middle" fontSize={10} fill="#6a6760">Karnataka</text>
+              </g>
+              <Pill x={cx} y={cy-106} label="★ Coordinator" fill="#534AB7" stroke="#534AB7" textColor="#ffffff" bold={sel?.id==="coordinator"} onClick={()=>setSel(coord)}/>
+              {nodes.map(n=>{
+                const isSel=n.r.id===selVert;
+                return <Pill key={n.r.id} x={n.x} y={n.y} label={n.r.name}
+                  fill={isSel?SC_BG[Math.min(n.r.minS,4)]:"#ffffff"} stroke={colOf(n.r)}
+                  textColor={isSel?colOf(n.r):"#3a382f"} bold={isSel} dim={!isSel}
+                  onClick={()=>{setSelVert(n.r.id); setSel(n.r);}}/>;
+              })}
+              {subNodes.map((s)=>{
+                const isSel=sel?.id===s.sb.id;
+                return <Pill key={s.sb.id} x={s.x} y={s.y} label={s.sb.name} small
+                  fill={isSel?SC_BG[Math.min(s.sb.minS,4)]:"#ffffff"} stroke={isSel?colOf(selNode.r):"#e0dccf"}
+                  textColor="#3a382f" bold={isSel}
+                  onClick={()=>setSel({...s.sb,parent:selNode.r.name,desc:`Sub-role of ${selNode.r.name}.`})}/>;
+              })}
+            </svg>
+          </Card>
+          <div style={{flex:"1 1 250px",minWidth:240}}>{detail}</div>
+        </div>
+      ) : (
+        <div style={{display:"flex",gap:16,flexWrap:"wrap",alignItems:"flex-start"}}>
+          <div style={{flex:"1 1 340px",minWidth:300}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,padding:"11px 14px",borderRadius:12,
+              background:"linear-gradient(135deg,#4A5C8A,#5B6FA8)",color:"#fff",marginBottom:10,boxShadow:"var(--shadow-md)"}}>
+              <svg width="22" height="20" viewBox="0 0 40 35"><polygon points="20,2 38,33 2,33" fill="#fff" opacity=".95"/><polygon points="20,12 30,30 10,30" fill="#4A5C8A"/></svg>
+              <div className="display" style={{fontSize:15,fontWeight:600}}>Isha Karnataka centre</div>
+            </div>
+            <div style={{marginLeft:19,paddingLeft:13,borderLeft:"2px solid var(--color-border-tertiary)"}}>
+              {ROLES.map(r=><Node key={r.id} role={r}/>)}
+            </div>
+          </div>
+          <div style={{flex:"1 1 280px",minWidth:260,position:"sticky",top:80}}>{detail}</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── My Profile ──
+function MyProfile({user, token, onUpdated}) {
+  const [p,setP] = useState(()=>({name:user.name||"",contact:"",photo:"",...(user.profile||{})}));
+  const [txt,setTxt] = useState("");
+  const ref = useRef();
+  const upd = k => v => setP(prev=>({...prev,[k]:v}));
+  const save = async () => {
+    setTxt("Saving…");
+    try{ const r=await api("updateProfile",{token, profile:p}); if(r.ok){ setTxt("Saved ✓"); onUpdated&&onUpdated(p);} else setTxt(r.error||"Failed"); }
+    catch(e){ setTxt("Save failed"); }
+  };
+  return (
+    <div style={{maxWidth:680}}>
+      <Title sub={`${user.email} · role: ${user.role}${user.assignedCentre?` · centre: ${(ALL_CENTRES.find(c=>c.id===user.assignedCentre)||{}).name||user.assignedCentre}`:""}`}>My profile</Title>
+      <Card style={{padding:16,marginBottom:14}}>
+        <div style={{display:"flex",gap:16,alignItems:"center",flexWrap:"wrap"}}>
+          <div onClick={()=>ref.current?.click()} style={{width:78,height:78,borderRadius:"50%",background:"#EEEDFE",
+            border:"1.5px dashed #AFA9EC",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",overflow:"hidden"}}>
+            {p.photo?<img src={p.photo} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>:<span style={{fontSize:26,color:"#AFA9EC"}}>+</span>}
+          </div>
+          <input ref={ref} type="file" accept="image/*" style={{display:"none"}}
+            onChange={e=>{const file=e.target.files[0];if(!file)return;const rd=new FileReader();rd.onload=ev=>setP(prev=>({...prev,photo:ev.target.result}));rd.readAsDataURL(file);}}/>
+          <div style={{flex:1,minWidth:200}}>
+            <Field label="Full name" type="text" value={p.name} onChange={upd("name")}/>
+            <Field label="Mobile" type="tel" value={p.contact} onChange={upd("contact")}/>
+          </div>
+        </div>
+      </Card>
+      {PROFILE_SECTIONS.map(sec=>(
+        <Card key={sec.id} style={{padding:16,marginBottom:12}}>
+          <SH mt={0}>{sec.title}</SH>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(220px,1fr))",gap:"0 14px"}}>
+            {sec.fields.map(fld=>(
+              <Field key={fld.k} label={fld.label} type={fld.type} value={p[fld.k]} options={fld.options} onChange={upd(fld.k)}/>
+            ))}
+          </div>
+        </Card>
+      ))}
+      <div style={{display:"flex",alignItems:"center",gap:12,marginTop:10,position:"sticky",bottom:0,
+        background:"linear-gradient(180deg,rgba(246,243,234,0),#f6f3ea 40%)",padding:"14px 0 10px",backdropFilter:"blur(4px)"}}>
+        <Btn onClick={save} style={{fontWeight:600,background:"var(--accent)",color:"#fff",borderColor:"var(--accent)",padding:"9px 18px"}}>Save profile</Btn>
+        <span style={{fontSize:12.5,color:"var(--color-text-secondary)"}}>{txt}</span>
+      </div>
+    </div>
+  );
+}
+
+// ── Admin: users & approvals ──
+function AdminUsers({token}) {
+  const [users,setUsers] = useState(null);
+  const [msg,setMsg] = useState("");
+  const load = async ()=>{ setMsg("Loading…"); try{const r=await api("listUsers",{token}); if(r.ok){setUsers(r.users);setMsg("");}else setMsg(r.error);}catch(e){setMsg("Failed to load");} };
+  useEffect(()=>{ load(); },[]);
+  const update = async (email,patch)=>{
+    setMsg("Saving…");
+    try{ const r=await api("approveUser",{token,email,...patch}); if(r.ok){ setMsg("Saved ✓"); load(); } else setMsg(r.error); }
+    catch(e){ setMsg("Failed"); }
+  };
+  const cell={padding:"8px",borderBottom:"1px solid var(--color-border-tertiary)",fontSize:12.5,verticalAlign:"top"};
+  if(!users) return <div style={{fontSize:13,color:"var(--color-text-secondary)"}}>{msg||"Loading users…"}</div>;
+  const pending=users.filter(u=>u.status==="pending");
+  return (
+    <div>
+      <Title sub={`${users.length} accounts · ${pending.length} awaiting approval · ${msg}`}>Users &amp; approvals</Title>
+      <Card style={{overflowX:"auto",padding:0}}>
+        <table style={{width:"100%",borderCollapse:"collapse",minWidth:760}}>
+          <thead><tr>{["Name / email","Status","Role","Assigned centre","Actions"].map(h=>(
+            <th key={h} style={{...cell,fontWeight:600,color:"var(--color-text-secondary)",background:"var(--color-background-secondary)"}}>{h}</th>
+          ))}</tr></thead>
+          <tbody>
+            {users.map(u=>(
+              <tr key={u.email}>
+                <td style={cell}><div style={{fontWeight:600}}>{u.name||"—"}</div><div style={{color:"var(--color-text-tertiary)"}}>{u.email}</div></td>
+                <td style={cell}>
+                  <span style={{padding:"3px 9px",borderRadius:12,fontSize:11,fontWeight:600,
+                    background:u.status==="approved"?"#E1F5EE":u.status==="pending"?"#FAEEDA":"#f1efe8",
+                    color:u.status==="approved"?"#0F6E56":u.status==="pending"?"#854F0B":"#888780"}}>{u.status}</span>
+                </td>
+                <td style={cell}>
+                  <select value={u.role} onChange={e=>update(u.email,{role:e.target.value})}
+                    style={{fontSize:12,padding:"4px 6px",borderRadius:7,border:"1px solid var(--color-border-tertiary)",background:"var(--color-background-primary)"}}>
+                    <option value="user">user</option><option value="admin">admin</option>
+                  </select>
+                </td>
+                <td style={cell}>
+                  <select value={u.assignedCentre||""} onChange={e=>update(u.email,{assignedCentre:e.target.value})}
+                    style={{fontSize:12,padding:"4px 6px",borderRadius:7,border:"1px solid var(--color-border-tertiary)",background:"var(--color-background-primary)",maxWidth:170}}>
+                    <option value="">— none —</option>
+                    {ALL_CENTRES.map(c=><option key={c.id} value={c.id}>{c.name} ({c.sectorName})</option>)}
+                  </select>
+                </td>
+                <td style={cell}>
+                  <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                    {u.status!=="approved"&&<Btn onClick={()=>update(u.email,{status:"approved"})} style={{fontSize:11,background:"#E1F5EE",borderColor:"#0F6E56",color:"#0F6E56"}}>Approve</Btn>}
+                    {u.status!=="rejected"&&<Btn onClick={()=>update(u.email,{status:"rejected"})} style={{fontSize:11,color:"#dc2626",borderColor:"#fca5a5"}}>Reject</Btn>}
+                    {u.status==="approved"&&<Btn onClick={()=>update(u.email,{status:"suspended"})} style={{fontSize:11}}>Suspend</Btn>}
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Card>
+    </div>
+  );
+}
+
+// ── Auth screen ──
+function AuthScreen({onLogin}) {
+  const [mode,setMode] = useState("login");
+  const [email,setEmail] = useState("");
+  const [password,setPassword] = useState("");
+  const [name,setName] = useState("");
+  const [msg,setMsg] = useState("");
+  const [busy,setBusy] = useState(false);
+  const submit = async () => {
+    setMsg(""); setBusy(true);
+    try{
+      if(mode==="login"){
+        const r=await api("login",{email,password});
+        if(r.ok) onLogin(r.token,r.user); else setMsg(r.error||"Login failed");
+      } else {
+        const r=await api("signup",{email,password,name});
+        if(r.ok){ setMsg(r.status==="approved"?"Account created & approved — you can log in now.":"Account created. An admin will approve you shortly."); setMode("login"); }
+        else setMsg(r.error||"Sign-up failed");
+      }
+    }catch(e){ setMsg("Network/backend error. Check GAS_URL in the file."); }
+    setBusy(false);
+  };
+  const input={width:"100%",padding:"11px 13px",border:"1px solid var(--color-border-tertiary)",borderRadius:11,
+    fontSize:14,marginBottom:10,background:"var(--color-background-primary)",color:"var(--color-text-primary)",outline:"none"};
+  return (
+    <div style={{minHeight:"90vh",display:"flex",alignItems:"center",justifyContent:"center"}}>
+      <div style={{width:370,maxWidth:"94vw"}}>
+        <div style={{textAlign:"center",marginBottom:20}}>
+          <div style={{position:"relative",width:64,height:64,margin:"0 auto 12px"}}>
+            <div style={{position:"absolute",inset:-8,borderRadius:"50%",background:"radial-gradient(circle,#C9C3F2,transparent 70%)",animation:"glowPulse 3.5s ease-in-out infinite"}}/>
+            <svg width="64" height="56" viewBox="0 0 40 35" style={{position:"relative"}}><polygon points="20,2 38,33 2,33" fill="#4A5C8A" opacity=".92"/><polygon points="20,10 30,28 10,28" fill="#5B9E8F" opacity=".88"/><polygon points="20,16 26,27 14,27" fill="#8BA8C0" opacity=".85"/></svg>
+          </div>
+          <div className="display" style={{fontSize:26,fontWeight:600,letterSpacing:"-0.01em"}}>Isha Karnataka</div>
+          <div style={{fontSize:12.5,color:"var(--color-text-secondary)",marginTop:3}}>Volunteer team builder</div>
+        </div>
+        <div style={{border:"1px solid var(--color-border-secondary)",borderRadius:20,padding:24,
+          background:"var(--color-background-primary)",boxShadow:"var(--shadow-lg)"}}>
+          <div style={{display:"flex",gap:6,marginBottom:16,background:"var(--color-background-secondary)",padding:4,borderRadius:11}}>
+            {[["login","Log in"],["signup","Sign up"]].map(([m,l])=>(
+              <button key={m} onClick={()=>{setMode(m);setMsg("");}}
+                style={{flex:1,padding:"8px",fontSize:13,borderRadius:8,cursor:"pointer",fontWeight:mode===m?700:500,
+                  border:"none",boxShadow:mode===m?"var(--shadow-sm)":"none",
+                  background:mode===m?"var(--color-background-primary)":"transparent",color:mode===m?"#534AB7":"var(--color-text-secondary)"}}>{l}</button>
+            ))}
+          </div>
+          {mode==="signup"&&<input style={input} placeholder="Full name" value={name} onChange={e=>setName(e.target.value)}/>}
+          <input style={input} type="email" placeholder="Email" value={email} onChange={e=>setEmail(e.target.value)} autoComplete="username"/>
+          <input style={input} type="password" placeholder="Password" value={password}
+            onChange={e=>setPassword(e.target.value)} autoComplete={mode==="login"?"current-password":"new-password"}
+            onKeyDown={e=>e.key==="Enter"&&submit()}/>
+          <button onClick={submit} disabled={busy}
+            style={{width:"100%",padding:"12px",fontSize:14.5,fontWeight:600,borderRadius:11,cursor:busy?"wait":"pointer",
+              border:"none",background:"linear-gradient(135deg,#534AB7,#6A5FD0)",color:"#fff",marginTop:4,boxShadow:"var(--shadow-md)"}}>{busy?"…":(mode==="login"?"Log in":"Create account")}</button>
+          {msg&&<div style={{fontSize:12.5,color:msg.includes("approve")||msg.includes("created")?"#0F6E56":"#dc2626",marginTop:12,lineHeight:1.45}}>{msg}</div>}
+          {!backendReady()&&<div style={{fontSize:11,color:"#854F0B",marginTop:12}}>⚠ Backend not configured — set GAS_URL in the HTML (see SETUP.md).</div>}
+        </div>
+        <div style={{fontSize:11.5,color:"var(--color-text-tertiary)",textAlign:"center",marginTop:14,lineHeight:1.5}}>
+          New accounts require admin approval before sign-in.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── MAIN APP ──
+function App() {
+  const [authUser,setAuthUser] = useState(null);
+  const [token,setToken] = useState(()=>{ try{return localStorage.getItem(TOKEN_LS)||"";}catch(e){return "";} });
+  const [authChecked,setAuthChecked] = useState(false);
+
+  const [S,setS] = useState(null);
+  const [view,setView] = useState("dashboard");
+  const [curCId,setCurCId] = useState(null);
+  const [curUID,setCurUID] = useState(null);
+  const [saveTxt,setSaveTxt] = useState("");
+  const timer = useRef();
+  const firstLoad = useRef(true);
+
+  useEffect(()=>{
+    (async()=>{
+      if(token && backendReady()){
+        try{ const r=await api("me",{token}); if(r.ok){ setAuthUser(r.user); } else { localStorage.removeItem(TOKEN_LS); setToken(""); } }
+        catch(e){}
+      }
+      setAuthChecked(true);
+    })();
+  },[]);
+
+  useEffect(()=>{
+    if(!authUser) return;
+    (async()=>{
+      try{ const r=await api("getState",{token}); const raw=r.ok?(r.value||""):""; setS(raw?JSON.parse(raw):{region:{},centres:{}}); }
+      catch(e){ setS({region:{},centres:{}}); }
+      firstLoad.current=true;
+      setSaveTxt("Ready");
+      setView("dashboard");
+    })();
+  },[authUser]);
+
+  useEffect(()=>{
+    if(!S||!authUser) return;
+    if(firstLoad.current){ firstLoad.current=false; return; }
+    setSaveTxt("Saving…");
+    clearTimeout(timer.current);
+    timer.current=setTimeout(async()=>{
+      try{
+        if(authUser.role==="admin"){ const r=await api("setState",{token, value:JSON.stringify(S)}); setSaveTxt(r.ok?"Saved ✓":(r.error||"Save failed")); }
+        else { const cid=authUser.assignedCentre; if(!cid){setSaveTxt("No centre assigned");return;} const r=await api("setCentre",{token, centreId:cid, data:S.centres?.[cid]||{}}); setSaveTxt(r.ok?"Saved ✓":(r.error||"Save failed")); }
+      }catch(e){ setSaveTxt("Save failed"); }
+    },900);
+  },[S]);
+
+  const onLogin=(tk,user)=>{ try{localStorage.setItem(TOKEN_LS,tk);}catch(e){} setToken(tk); setAuthUser(user); };
+  const logout=()=>{ try{localStorage.removeItem(TOKEN_LS);}catch(e){} setToken(""); setAuthUser(null); setS(null); };
+
+  const getCd = id => S?.centres?.[id]||{stage:0,units:[],notes:"",coord:{}};
+  const updCd = (id,patch) => setS(p=>({...p,centres:{...p.centres,[id]:{...getCd(id),...patch}}}));
+  const getUnit = (cid,uid) => getCd(cid).units?.find(u=>u.id===uid)||{id:uid,name:uid,stage:1,team:{}};
+  const updUnit = (cid,uid,patch) => { const cd=getCd(cid); updCd(cid,{units:(cd.units||[]).map(u=>u.id===uid?{...u,...patch}:u)}); };
+  const nav = (v,cid,uid) => { if(cid!==undefined) setCurCId(cid); if(uid!==undefined) setCurUID(uid); setView(v); window.scrollTo(0,0); };
+
+  const isAdmin = authUser?.role==="admin";
+  const canEditCentre = cid => isAdmin || (authUser?.assignedCentre===cid);
+
+  if(!authChecked) return <div style={{padding:24,fontSize:14,color:"var(--color-text-secondary)"}}>Checking session…</div>;
+  if(!authUser) return <AuthScreen onLogin={onLogin}/>;
+  if(authUser.status && authUser.status!=="approved")
+    return <div style={{padding:24}}><div className="display" style={{fontSize:22,fontWeight:600,marginBottom:6}}>Awaiting approval</div>
+      <div style={{fontSize:13,color:"var(--color-text-secondary)"}}>Your account ({authUser.email}) is pending admin approval.</div>
+      <div style={{marginTop:14}}><Btn onClick={logout}>Log out</Btn></div></div>;
+  if(!S) return <div style={{padding:24,fontSize:14,color:"var(--color-text-secondary)"}}>Loading data…</div>;
+
+  const exportCSV = () => {
+    const rows=[["Layer","Sector","Centre","Unit","Role","Name","Contact","Email","Status","Next step"]];
+    REGION_ROLES.forEach(r=>{const p=S.region?.[r.id]||{};rows.push(["Region","—","—","—",r.name,p.name||"",p.contact||"",p.email||"",p.status||"vacant",p.nextStep||""]);});
+    ALL_CENTRES.forEach(c=>{
+      const cd=getCd(c.id);const coord=cd.coord||{};
+      rows.push(["Coordinator",c.sectorName,c.name,"—","Centre coordinator",coord.name||"",coord.contact||"",coord.email||"","",""]);
+      (cd.units||[]).forEach(u=>{
+        const st=u.stage||1;
+        rolesForStage(st).forEach(r=>{
+          const p=u.team?.[r.id]||{};
+          rows.push([c.sectorName,c.sectorName,c.name,u.name,r.name,p.name||"",p.contact||"",p.email||"",p.status||"vacant",p.nextStep||""]);
+          subsForStage(r,st).forEach(sb=>{const sp=u.team?.[sb.id]||{};rows.push([c.sectorName,c.sectorName,c.name,u.name,"  ↳ "+sb.name,sp.name||"",sp.contact||"",sp.email||"",sp.status||"vacant",sp.nextStep||""]);});
+        });
+      });
+    });
+    const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(",")).join("\n");
+    const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download="isha_karnataka_team.csv";a.click();
+  };
+
+  const tabs = isAdmin
+    ? [["dashboard","Dashboard"],["centres","Centres"],["region","Region"],["blueprint","Blueprint"],["admin","Users"],["profile","My profile"]]
+    : [["dashboard","Dashboard"],...(authUser.assignedCentre?[["mycentre","My centre"]]:[]),["blueprint","Blueprint"],["profile","My profile"]];
+  const activeTab = ["detail","unit","centreDash","mycentre"].includes(view)?"dashboard":view;
+
+  const Topbar = () => (
+    <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:16,paddingTop:14,paddingBottom:11,
+      position:"sticky",top:0,zIndex:50,marginTop:-18,marginLeft:-20,marginRight:-20,paddingLeft:20,paddingRight:20,
+      background:"rgba(248,245,238,0.82)",backdropFilter:"saturate(160%) blur(12px)",WebkitBackdropFilter:"saturate(160%) blur(12px)",
+      borderBottom:"1px solid var(--color-border-tertiary)",flexWrap:"wrap"}}>
+      <div style={{display:"flex",alignItems:"center",gap:9,marginRight:"auto",cursor:"pointer"}} onClick={()=>nav("dashboard")}>
+        <svg width="26" height="23" viewBox="0 0 40 35">
+          <polygon points="20,2 38,33 2,33" fill="#4A5C8A" opacity=".9"/>
+          <polygon points="20,10 30,28 10,28" fill="#5B9E8F" opacity=".85"/>
+          <polygon points="20,16 26,27 14,27" fill="#8BA8C0" opacity=".8"/>
+        </svg>
+        <div>
+          <div className="display" style={{fontSize:16.5,fontWeight:600,lineHeight:1.05}}>Isha Karnataka</div>
+          <div style={{fontSize:11,color:"var(--color-text-secondary)"}}>{authUser.name||authUser.email} · {isAdmin?"admin":"member"}{saveTxt?` · ${saveTxt}`:""}</div>
+        </div>
+      </div>
+      <div style={{display:"flex",border:"1px solid var(--color-border-tertiary)",borderRadius:10,overflow:"hidden",flexWrap:"wrap",background:"var(--color-background-primary)",boxShadow:"var(--shadow-sm)"}}>
+        {tabs.map(([id,lbl])=>(
+          <button key={id} onClick={()=>{ if(id==="mycentre") nav("detail",authUser.assignedCentre); else nav(id); }}
+            style={{padding:"6px 12px",fontSize:12.5,border:"none",cursor:"pointer",
+              borderRight:"1px solid var(--color-border-tertiary)",fontWeight:activeTab===id?600:450,
+              background:activeTab===id?"var(--accent-soft)":"var(--color-background-primary)",
+              color:activeTab===id?"#534AB7":"var(--color-text-secondary)"}}>{lbl}</button>
+        ))}
+      </div>
+      {isAdmin&&<Btn onClick={exportCSV} style={{color:"var(--color-text-secondary)"}}>↓ Export</Btn>}
+      <Btn onClick={logout} style={{color:"var(--color-text-secondary)"}}>Log out</Btn>
+    </div>
+  );
+
+  let body=null;
+  if(view==="dashboard") body=<RegionDashboard S={S} getCd={getCd} nav={nav} user={authUser}/>;
+  else if(view==="centreDash") body=<CentreDashboard cid={curCId} S={S} getCd={getCd} nav={nav} canEdit={canEditCentre(curCId)}/>;
+  else if(view==="detail") body=<DetailView cid={curCId} S={S} updCd={updCd} nav={nav} readOnly={!canEditCentre(curCId)}/>;
+  else if(view==="unit") {
+    const cInfo=ALL_CENTRES.find(c=>c.id===curCId);
+    const uData=curCId&&curUID?getUnit(curCId,curUID):null;
+    const ro=!canEditCentre(curCId);
+    body = (!cInfo||!uData) ? <div>Unit not found.</div> : (
+      <div>
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:12,flexWrap:"wrap"}}>
+          <Btn onClick={()=>nav(ro?"centreDash":"detail",curCId)}>← {cInfo.name}</Btn>
+          <div>
+            <div className="display" style={{fontSize:19,fontWeight:600}}>{uData.name}</div>
+            <div style={{display:"flex",alignItems:"center",gap:6}}>
+              <Badge stage={uData.stage||1}/>
+              {!ro&&<select value={uData.stage||1} onChange={e=>updUnit(curCId,curUID,{stage:+e.target.value})}
+                style={{fontSize:11,border:"1px solid var(--color-border-tertiary)",borderRadius:6,padding:"3px 5px",
+                  background:"var(--color-background-primary)",color:"var(--color-text-primary)"}}>
+                {[1,2,3,4].map(s=><option key={s} value={s}>{SL[s]}</option>)}
+              </select>}
+            </div>
+          </div>
+          <Btn onClick={()=>nav("blueprint")} style={{marginLeft:"auto"}}>R&R ↗</Btn>
+        </div>
+        <TeamTable unit={uData} readOnly={ro} onChange={updated=>updUnit(curCId,curUID,updated)}/>
+        <div style={{display:"flex",justifyContent:"flex-end",marginTop:10}}>
+          <Btn onClick={()=>nav(ro?"centreDash":"detail",curCId)} style={{fontWeight:600,background:"var(--color-background-secondary)"}}>Done ✓</Btn>
+        </div>
+      </div>
+    );
+  }
+  else if(view==="centres" && isAdmin) body=<CentresEditor S={S} getCd={getCd} nav={nav}/>;
+  else if(view==="region" && isAdmin) body=<RegionView S={S} setS={setS}/>;
+  else if(view==="blueprint") body=<BlueprintTree/>;
+  else if(view==="admin" && isAdmin) body=<AdminUsers token={token}/>;
+  else if(view==="profile") body=<MyProfile user={authUser} token={token} onUpdated={pr=>setAuthUser(u=>({...u,profile:pr,name:pr.name||u.name}))}/>;
+  else body=<RegionDashboard S={S} getCd={getCd} nav={nav} user={authUser}/>;
+
+  return <div><Topbar/><div key={view} className="view">{body}</div></div>;
+}
+
+// admin centres editor grid (full edit)
+function CentresEditor({S, getCd, nav}) {
+  const totalC=ALL_CENTRES.length;
+  const liveC=ALL_CENTRES.filter(c=>{const d=getCd(c.id);return (d.units||[]).length>0||d.stage>0;}).length;
+  return (
+    <div>
+      <Title sub={<span><b>{totalC}</b> centres · <b>{SECTORS.length}</b> sectors · <span style={{color:"#1D9E75",fontWeight:600}}>{liveC}</span> set up — tap to edit</span>}>Centres</Title>
+      {SECTORS.map(sec=>{
+        let sf=0,st=0;sec.centres.forEach(c=>{(getCd(c.id).units||[]).forEach(u=>{const x=countFill(u);sf+=x.f;st+=x.t;});});
+        return (
+          <div key={sec.id} style={{marginBottom:20}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:9}}>
+              <div style={{fontSize:11,fontWeight:700,color:"var(--color-text-secondary)",textTransform:"uppercase",letterSpacing:".08em"}}>{sec.name}</div>
+              <div style={{fontSize:11,color:"var(--color-text-tertiary)"}}>{sec.centres.length} centres{st>0&&` · ${sf}/${st} roles`}</div>
+            </div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(150px,1fr))",gap:8}}>
+              {sec.centres.map(c=>{
+                const d=getCd(c.id);const stage=d.stage||0;const coord=d.coord||{};
+                let tf=0,tt=0;(d.units||[]).forEach(u=>{const x=countFill(u);tf+=x.f;tt+=x.t;});
+                const live=(d.units||[]).length>0||stage>0;
+                return (
+                  <Card key={c.id} onClick={()=>nav("detail",c.id)}
+                    style={{padding:11,cursor:"pointer",
+                      border:`1px solid ${live?"#4A5C8A":"var(--color-border-tertiary)"}`,
+                      boxShadow:live?"var(--shadow-md)":"var(--shadow-sm)"}}>
+                    <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:4,marginBottom:5}}>
+                      <div style={{fontSize:12.5,fontWeight:600,lineHeight:1.3}}>{c.name}</div><Badge stage={stage}/>
+                    </div>
+                    {c.taluk&&<div style={{fontSize:10,color:"#854F0B",background:"#FAEEDA",borderRadius:8,padding:"1px 6px",display:"inline-block",marginBottom:3}}>Taluk</div>}
+                    {c.activeClasses&&<div style={{fontSize:10,color:"#0F6E56",background:"#E1F5EE",borderRadius:8,padding:"1px 6px",display:"inline-block",marginBottom:3}}>Classes ✓</div>}
+                    {c.med>0&&<div style={{fontSize:10,color:"var(--color-text-tertiary)",marginBottom:3}}>{c.med.toLocaleString()} med.</div>}
+                    {coord.name&&<div style={{fontSize:10,color:"#534AB7",marginBottom:3}}>📋 {coord.name}</div>}
+                    {tt>0?<><PBar f={tf} t={tt}/><div style={{fontSize:10,color:"var(--color-text-tertiary)",marginTop:3}}>{tf}/{tt}</div></>
+                      :<div style={{fontSize:10,color:"var(--color-text-tertiary)",marginTop:4}}>{(d.units||[]).length} units</div>}
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App/>);
+</script>
+</body>
+</html>

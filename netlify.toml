@@ -1,0 +1,23 @@
+# Netlify config for Isha Karnataka Team Builder
+# The app is a single static HTML file — no build step needed.
+
+[build]
+  publish = "."
+  command = ""
+
+[[redirects]]
+  from = "/"
+  to = "/isha_karnataka.html"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/isha_karnataka.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
