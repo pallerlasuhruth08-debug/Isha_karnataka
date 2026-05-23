@@ -179,9 +179,9 @@ const SECTORS = [
 ];
 
 const ALL_CENTRES = SECTORS.flatMap(s => s.centres.map(c => ({...c, sectorId:s.id, sectorName:s.name})));
-const SL = ["","Micro centre","Sub-centre","Centre","Super centre"];
-const SC_COLOR = ["#888780","#185FA5","#0F6E56","#534AB7","#854F0B"];
-const SC_BG    = ["#f1efe8","#E6F1FB","#E1F5EE","#EEEDFE","#FAEEDA"];
+const SL = ["","Micro centre","Sub-centre","Centre","Super centre","Sector"];
+const SC_COLOR = ["#888780","#185FA5","#0F6E56","#534AB7","#854F0B","#7A1F8E"];
+const SC_BG    = ["#f1efe8","#E6F1FB","#E1F5EE","#EEEDFE","#FAEEDA","#F6E6FB"];
 
 const ROLES = [
   { id:"coordinator", n:0, name:"Centre coordinator", desc:"Holds the whole team together. Not inside the triangle.", minS:3, subs:[], special:true },
@@ -548,7 +548,7 @@ function DetailView({cid, S, updCd, nav, readOnly}) {
         onSave={data=>updCd(cid,{coord:{...coord,...data}})} onClose={()=>setShowCoord(false)}/>}
       <SH mt={0}>Centre stage</SH>
       <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:16}}>
-        {[1,2,3,4].map(s=>(
+        {[1,2,3,4,5].map(s=>(
           <button key={s} onClick={readOnly?undefined:()=>updCd(cid,{stage:s})}
             style={{padding:"5px 13px",borderRadius:20,fontSize:11.5,cursor:readOnly?"default":"pointer",fontWeight:stage===s?700:500,
               border:`1px solid ${stage===s?SC_COLOR[s]:"var(--color-border-tertiary)"}`,
@@ -588,7 +588,7 @@ function DetailView({cid, S, updCd, nav, readOnly}) {
           <select value={newStage} onChange={e=>setNewStage(+e.target.value)}
             style={{padding:"7px 9px",border:"1px solid var(--color-border-tertiary)",borderRadius:9,
               fontSize:11.5,background:"var(--color-background-primary)",color:"var(--color-text-primary)"}}>
-            {[1,2,3,4].map(s=><option key={s} value={s}>{SL[s]}</option>)}
+            {[1,2,3,4,5].map(s=><option key={s} value={s}>{SL[s]}</option>)}
           </select>
           <Btn onClick={addUnit}>+ Add</Btn>
         </div>
@@ -1303,7 +1303,7 @@ function App() {
               {!ro&&<select value={uData.stage||1} onChange={e=>updUnit(curCId,curUID,{stage:+e.target.value})}
                 style={{fontSize:11,border:"1px solid var(--color-border-tertiary)",borderRadius:6,padding:"3px 5px",
                   background:"var(--color-background-primary)",color:"var(--color-text-primary)"}}>
-                {[1,2,3,4].map(s=><option key={s} value={s}>{SL[s]}</option>)}
+                {[1,2,3,4,5].map(s=><option key={s} value={s}>{SL[s]}</option>)}
               </select>}
             </div>
           </div>
